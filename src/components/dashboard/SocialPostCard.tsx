@@ -31,11 +31,17 @@ export function SocialPostCard({ post }: { post: SocialPost }) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-bold text-black text-sm truncate">{post.author.name}</span>
-              {post.entities.hashtags.slice(0, 1).map(h => (
-                <Badge key={h.text} className="text-xs bg-blue-100 text-blue-800">
-                  #{h.text}
-                </Badge>
-              ))}
+              {
+                post.entities.hashtags && (
+                  <>
+                    {post.entities.hashtags.slice(0, 1).map(h => (
+                      <Badge key={h.text} className="text-xs bg-blue-100 text-blue-800">
+                        #{h.text}
+                      </Badge>
+                    ))}
+                  </>
+                )
+              }
             </div>
             <span className="text-xs text-gray-500">@{post.author.username}</span>
           </div>
@@ -43,18 +49,21 @@ export function SocialPostCard({ post }: { post: SocialPost }) {
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-gray-900 whitespace-pre-wrap">{post.text}</p>
-        {post.entities.hashtags.length > 1 && (
-          <div className="flex flex-wrap gap-1">
-            {post.entities.hashtags.slice(1).map(h => (
-              <span
-                key={h.text}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-gray-100 text-[10px] font-medium text-gray-600"
-              >
-                <Hash className="h-3 w-3" /> {h.text}
-              </span>
-            ))}
-          </div>
-        )}
+        {
+          post.entities.hashtags && <>
+            {post.entities.hashtags.length > 1 && (
+              <div className="flex flex-wrap gap-1">
+                {post.entities.hashtags.slice(1).map(h => (
+                  <span
+                    key={h.text}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-gray-100 text-[10px] font-medium text-gray-600"
+                  >
+                    <Hash className="h-3 w-3" /> {h.text}
+                  </span>
+                ))}
+              </div>
+            )}</>
+        }
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <div className="flex items-center gap-1">

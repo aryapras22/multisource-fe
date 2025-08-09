@@ -53,6 +53,8 @@ export function NewsCollectionSection({ logic }: { logic: UseNewsCollection }) {
               Searching news sources and generating summaries...
             </p>
           )}
+          {news.error && <p className="text-sm text-red-600">{news.error}</p>}
+
         </CardContent>
       </Card>
     )

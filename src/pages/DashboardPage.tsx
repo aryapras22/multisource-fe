@@ -27,7 +27,7 @@ export default function DashboardPage() {
 
   const appsLogic = useAppsCollection(id)
   const newsLogic = useNewsCollection(id)
-  const socialLogic = useSocialCollection()
+  const socialLogic = useSocialCollection(id)
 
   const navigate = useNavigate()
 

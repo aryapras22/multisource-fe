@@ -53,6 +53,8 @@ export function SocialCollectionSection({ logic }: { logic: UseSocialCollection 
               Collecting posts and extracting metadata...
             </p>
           )}
+          {social.error && <p className="text-sm text-red-600">{social.error}</p>}
+
         </CardContent>
       </Card>
     )
