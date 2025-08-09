@@ -115,7 +115,7 @@ export function useAppsCollection(projectId?: string): UseAppsCollection {
 
       setAppsState(s => ({
         ...s,
-        items: s.items.map(a => a._id === app_id ? { ...a, reviewsCollected: true } : a)
+        items: s.items.map(a => a.appId === app_id ? { ...a, reviewsCollected: true } : a)
       }))
     } catch (e) {
       if (e instanceof Error) {

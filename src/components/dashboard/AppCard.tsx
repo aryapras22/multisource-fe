@@ -27,6 +27,7 @@ export function AppCard({ app, reviewsPerApp, onGetReviews, reviewsLoading }: Ap
               {app.appName}
             </CardTitle>
             <p className="text-xs text-gray-600 mb-2">{app.developer}</p>
+            <p className="text-xs text-gray-600 mb-2">ID: {app.appId}</p>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1">
                 <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
