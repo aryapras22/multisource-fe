@@ -1,12 +1,13 @@
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Plus, Search, FolderOpen, Badge, Calendar, ArrowRight } from "lucide-react"
+import { Plus, Search, FolderOpen, Calendar, ArrowRight } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router"
 
 interface Project {
-  id: string
+  _id: string
   name: string
   case_study: string
   created_at: string
@@ -21,17 +22,20 @@ function HomePage() {
 
   useEffect(() => {
     // Fetch projects data
+
     const fetchProjects = async () => {
       try {
-        const endpoint = process.env.REACT_APP_MULTISOURCE_SERVICE_API_ENDPOINT
+        const endpoint = import.meta.env.VITE_MULTISOURCE_SERVICE_API_ENDPOINT
         if (!endpoint) {
           console.error("API endpoint is not configured")
+
           setProjects([])
           setLoading(false)
           return
         }
 
         const res = await fetch(`${endpoint}/get-projects`)
+
         if (!res.ok) {
           throw new Error('Failed to fetch data from API')
         }
@@ -47,9 +51,9 @@ function HomePage() {
     }
 
     fetchProjects()
+
   }, [])
 
-  // Filter projects based on search term
   const filteredProjects = projects.filter(project =>
     project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     project.case_study.toLowerCase().includes(searchTerm.toLowerCase())
@@ -82,11 +86,11 @@ function HomePage() {
 
   const handleProjectClick = (project: Project) => {
     switch (project.status) {
-      case "draft": navigate(`/project/${project.id}/configure`); break
+      case "draft": navigate(`/project/${project._id}/configure`); break
       case "configured":
-      case "analyzing": navigate(`/project/${project.id}/dashboard`); break
-      case "complete": navigate(`/project/${project.id}/requirements`); break
-      default: navigate(`/project/${project.id}/dashboard`)
+      case "analyzing": navigate(`/project/${project._id}/dashboard`); break
+      case "complete": navigate(`/project/${project._id}/requirements`); break
+      default: navigate(`/project/${project._id}/dashboard`)
     }
   }
 
@@ -166,7 +170,7 @@ function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProjects.map((project) => (
               <Card
-                key={project.id}
+                key={project._id}
                 className="border border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer group"
                 onClick={() => handleProjectClick(project)}
               >
