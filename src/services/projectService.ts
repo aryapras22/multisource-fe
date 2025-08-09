@@ -13,7 +13,6 @@ export async function fetchProjectQueries(params: {
   return apiGet<string[]>(`/get-project-queries?project_id=${params.project_id}`)
 }
 
-
 export async function fetchDataState(params: { project_id: string }) {
   return apiGet<dataState>(`/check-project-fetch-states?project_id=${params.project_id}`)
 }

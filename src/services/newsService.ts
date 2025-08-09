@@ -7,3 +7,7 @@ export async function fetchNewsArticles(params: { project_id: string; query: str
 
   return apiGet<NewsArticle[]>(`/get-news?${q}`)
 }
+
+export async function getNews(params: { project_id: string }) {
+  return apiGet<NewsArticle[]>(`/get-project-news?project_id=${params.project_id}`)
+}
