@@ -14,7 +14,13 @@ export async function fetchAppReviews(params: { project_id: string; store: strin
     app_id: String(params.app_id),
     count: String(params.count)
   }).toString();
-  //http://localhost:8001/get-reviews?project_id=eb8bad69-8876-48fa-8e53-5760f8ab3687&store=google&app_id=fr.icuisto.icuisto&count=10
   return apiGet<AppReview[]>(`/get-reviews?${q}`)
+}
 
+export async function getApps(params: { project_id: string }) {
+  return apiGet<App[]>(`/get-project-apps?project_id=${params.project_id}`)
+}
+
+export async function getReviews(params: { project_id: string }) {
+  return apiGet<AppReview[]>(`/get-project-app-reviews?project_id=${params.project_id}`)
 }

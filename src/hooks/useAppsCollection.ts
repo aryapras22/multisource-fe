@@ -1,6 +1,7 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import type { App, AppReview } from "@/types/collections"
-import { searchApps, fetchAppReviews } from "@/services/appsService"
+import { searchApps, fetchAppReviews, getApps, getReviews } from "@/services/appsService"
+import { fetchDataState } from "@/services/projectService"
 
 /**
  * Hook state shape for a generic collection with loading flags.
@@ -47,6 +48,34 @@ export function useAppsCollection(projectId?: string): UseAppsCollection {
   const [appCount, setAppCount] = useState(5)
   const [reviewsPerApp, setReviewsPerApp] = useState(20)
   const [reviewsLoadingId, setReviewsLoadingId] = useState<string | null | number>(null)
+
+
+
+  useEffect(() => {
+    if (!projectId) return;
+    const fetchInitialData = async () => {
+      setAppsState((s) => ({ ...s, loading: true }))
+      setReviewsState((s) => ({ ...s, loading: true }))
+      const states = await fetchDataState({ project_id: projectId })
+      if (states.appStores) {
+        const apps = await getApps({ project_id: projectId })
+        setAppsState({ items: apps, loading: false, loaded: true })
+      }
+
+      if (states.reviews) {
+        const reviews = await getReviews({ project_id: projectId })
+        setReviewsState({ items: reviews, loading: false, loaded: true })
+
+        for (const review of reviews) {
+          setAppsState((s) => ({ ...s, items: s.items.map(a => a.appId.toString() === review.app_id ? { ...a, reviewsCollected: true } : a) }))
+        }
+      }
+      setAppsState((s) => ({ ...s, loading: false }))
+      setReviewsState((s) => ({ ...s, loading: false }))
+    }
+    fetchInitialData()
+  }, [projectId])
+
 
   const findApps = useCallback(async (): Promise<void> => {
     if (!projectId) return;

@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react"
 import { AppCard } from "./AppCard"
 import type { UseAppsCollection } from "@/hooks/useAppsCollection"
 import { ReviewsList } from "./ReviewsList"
+import { useState } from "react"
 
 
 /**
@@ -25,8 +26,7 @@ export function AppCollectionSection({ logic }: { logic: UseAppsCollection }) {
     reviewsLoadingId
   } = logic
 
-
-  console.log(reviews)
+  const [storeFilter, setStoreFilter] = useState<"all" | "apple" | "google">("all")
 
   if (!apps.loaded) {
     return (
@@ -92,10 +92,41 @@ export function AppCollectionSection({ logic }: { logic: UseAppsCollection }) {
     )
   }
 
+  const filteredApps = apps.items.filter(a => storeFilter === "all" || a.store === storeFilter)
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
+      <div className="py-4 flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant={storeFilter === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setStoreFilter("all")}
+          >
+            All
+          </Button>
+          <Button
+            variant={storeFilter === "apple" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setStoreFilter("apple")}
+          >
+            iOS
+          </Button>
+          <Button
+            variant={storeFilter === "google" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setStoreFilter("google")}
+          >
+            Android
+          </Button>
+        </div>
+        <p className="text-xs text-gray-500">
+          Showing {filteredApps.length} of {apps.items.length} apps.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {apps.items.map(a => (
+        {filteredApps.map(a => (
           <AppCard
             key={a._id}
             app={a}
@@ -129,7 +160,6 @@ export function AppCollectionSection({ logic }: { logic: UseAppsCollection }) {
 
       <ReviewsList reviews={reviews.items} />
       {reviews.error && <p className="text-sm text-red-600">{reviews.error}</p>}
-
     </div>
   )
 }

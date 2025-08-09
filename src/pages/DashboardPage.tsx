@@ -96,7 +96,7 @@ export default function DashboardPage() {
 
         <CollectionProgress statuses={statuses} />
 
-        <Tabs defaultValue="apps" className="space-y-6">
+        <Tabs defaultValue="apps" className="">
           <TabsList className="grid w-full grid-cols-3 bg-gray-100">
             <TabsTrigger value="apps" className="data-[state=active]:bg-white data-[state=active]:text-black">
               <Smartphone className="h-4 w-4 mr-2" />
