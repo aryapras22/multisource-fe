@@ -1,10 +1,13 @@
 import { useState, useCallback } from "react"
 import type { NewsArticle } from "@/types/collections"
+import { fetchNewsArticles } from "@/services/newsService"
+import { fetchProjectQueries } from "@/services/projectService"
 
 interface CollectionState<T> {
   items: T[]
   loading: boolean
   loaded: boolean
+  error?: string
 }
 
 export interface UseNewsCollection {
@@ -14,31 +17,10 @@ export interface UseNewsCollection {
   fetchNews: () => Promise<void>
 }
 
-const mockNews: NewsArticle[] = [
-  {
-    _id: "6891fec0d777fa89f353111c",
-    title: "Motorola Introduces Ai Nutrition Labels For Safety Technologies",
-    author: "Deepak",
-    link: "https://www.snsmideast.com/motorola-introduces-ai-nutrition-labels-for-safety-technologies",
-    description: "Motorola Solutions has announced it is introducing 'AI nutrition labels'...",
-    content: "Motorola Solutions has announced it is introducing 'AI nutrition labels'...",
-    query: "AI nutrition assistant"
-  },
-  {
-    _id: "news-2",
-    title: "AI-Powered Meal Planning Apps See 300% Growth in 2024",
-    author: "Tech Food Weekly",
-    link: "https://example.com/news-1",
-    description: "The meal planning app market is experiencing unprecedented growth...",
-    content: "The meal planning app market is experiencing unprecedented growth...",
-    query: "AI meal plan customization"
-  }
-]
-
 /**
  * Handles news article collection (isolates async + counts).
  */
-export function useNewsCollection(): UseNewsCollection {
+export function useNewsCollection(projectId?: string): UseNewsCollection {
   const [news, setNews] = useState<CollectionState<NewsArticle>>({
     items: [],
     loading: false,
@@ -47,10 +29,24 @@ export function useNewsCollection(): UseNewsCollection {
   const [newsCount, setNewsCount] = useState(10)
 
   const fetchNews = useCallback(async () => {
+    if (!projectId) return
     setNews(s => ({ ...s, loading: true }))
-    await new Promise(r => setTimeout(r, 700))
-    setNews({ items: mockNews.slice(0, newsCount), loading: false, loaded: true })
-  }, [newsCount])
+
+    try {
+      const queries = await fetchProjectQueries({ project_id: projectId })
+      if (queries.length === 0) return
+      const articles = []
+      for (const q of queries) {
+        const data = await fetchNewsArticles({ project_id: projectId, query: q, limit: newsCount })
+        articles.push(...data)
+      }
+      setNews({ items: articles, loading: false, loaded: true })
+    } catch (error) {
+      if (error instanceof Error) {
+        setNews(s => ({ ...s, loading: false, error: error.message }))
+      }
+    }
+  }, [projectId, newsCount])
 
   return { news, newsCount, setNewsCount, fetchNews }
 }

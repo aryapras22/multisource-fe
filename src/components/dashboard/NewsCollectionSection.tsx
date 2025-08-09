@@ -17,7 +17,7 @@ export function NewsCollectionSection({ logic }: { logic: UseNewsCollection }) {
       <Card className="border border-gray-200">
         <CardHeader className="text-center">
           <CardTitle className="text-xl font-bold text-black">Fetch News Articles</CardTitle>
-          <CardDescription>Collect recent industry news.</CardDescription>
+          <CardDescription>Collect recent industry news by queries.</CardDescription>
         </CardHeader>
         <CardContent className="text-center space-y-4">
           <div className="flex items-center justify-center gap-4">

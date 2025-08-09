@@ -85,6 +85,8 @@ export function AppCollectionSection({ logic }: { logic: UseAppsCollection }) {
               This may take a few minutes as we search across multiple app stores...
             </p>
           )}
+          {apps.error && <p className="text-sm text-red-600">{apps.error}</p>}
+
         </CardContent>
       </Card>
     )
@@ -126,6 +128,8 @@ export function AppCollectionSection({ logic }: { logic: UseAppsCollection }) {
       )}
 
       <ReviewsList reviews={reviews.items} />
+      {reviews.error && <p className="text-sm text-red-600">{reviews.error}</p>}
+
     </div>
   )
 }

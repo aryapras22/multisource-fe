@@ -25,9 +25,8 @@ import { buildStatuses } from "@/lib/buildStatuses"
 export default function DashboardPage() {
   const { id } = useParams<{ id: string }>()
 
-
   const appsLogic = useAppsCollection(id)
-  const newsLogic = useNewsCollection()
+  const newsLogic = useNewsCollection(id)
   const socialLogic = useSocialCollection()
 
   const navigate = useNavigate()
