@@ -1,7 +1,7 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import type { SocialPost } from "@/types/collections"
-import { fetchProjectQueries } from "@/services/projectService"
-import { fetchTwitter } from "@/services/socialService"
+import { fetchDataState, fetchProjectQueries } from "@/services/projectService"
+import { fetchTwitter, getTweets } from "@/services/socialService"
 
 interface CollectionState<T> {
   items: T[]
@@ -27,6 +27,22 @@ export function useSocialCollection(projectId?: string): UseSocialCollection {
     loaded: false
   })
   const [socialCount, setSocialCount] = useState(15)
+
+
+  useEffect(() => {
+    if (!projectId) return
+    setSocial((s) => ({ ...s, loading: true }))
+
+    const fetchInitialData = async () => {
+      const state = await fetchDataState({ project_id: projectId })
+      if (state.socialMedia) {
+        const tweets = await getTweets({ project_id: projectId })
+        setSocial({ items: tweets, loading: false, loaded: true })
+      }
+      setSocial((s) => ({ ...s, loading: false }))
+    }
+    fetchInitialData()
+  }, [projectId])
 
   const scrapeSocial = useCallback(async () => {
     if (!projectId) return

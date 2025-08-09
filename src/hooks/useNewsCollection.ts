@@ -37,6 +37,7 @@ export function useNewsCollection(projectId?: string): UseNewsCollection {
         const news = await getNews({ project_id: projectId })
         setNews({ items: news, loading: false, loaded: true })
       }
+      setNews((s) => ({ ...s, loading: false }))
     }
     fetchInitialData()
   }, [projectId])
