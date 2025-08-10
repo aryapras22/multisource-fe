@@ -25,3 +25,27 @@ export async function apiGet<T>(path: string, signal?: AbortSignal) {
 
   return res.json() as Promise<T>
 }
+
+export async function apiPost<T>(path: string, body: unknown, signal?: AbortSignal) {
+
+  const res = await fetch(BASE_URL + path, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body),
+    signal
+  })
+
+  if (!res.ok) {
+    const err: ApiError = new Error(`POST ${path} failed (${res.status})`)
+    err.status = res.status
+    try {
+      err.payload = await res.json()
+    } catch { /* empty */ }
+    throw err
+  }
+
+  return res.json() as Promise<T>
+}

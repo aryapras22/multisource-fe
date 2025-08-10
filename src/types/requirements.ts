@@ -3,7 +3,7 @@
  * Centralizes shared interfaces so components stay lean.
  */
 export interface Source {
-  type: "news" | "review" | "social"
+  type: "news" | "review" | "tweet"
   title: string
   author?: string
   content: string

@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useNavigate, useParams } from "react-router"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { mockUserStories, mockUseCases, generationSteps } from "@/data/mockRequirements"
+import { mockUseCases, mockUserStories } from "@/data/mockRequirements"
 import { useRequirementsGeneration } from "@/hooks/useRequirementsGeneration"
 import { RequirementsHeader } from "@/components/requirements/RequirementsHeader"
 import { StatsOverview } from "@/components/requirements/StatsOverview"
@@ -15,7 +15,7 @@ export default function RequirementsPage() {
   const [activeTab, setActiveTab] = useState("user-stories")
 
   const { isGenerating, currentStep, progress, steps } = useRequirementsGeneration({
-    steps: generationSteps
+    projectId: id,
   })
 
   const handleExport = () => alert("Export triggered.")
