@@ -1,19 +1,18 @@
-/**
- * Tab content for use cases (responsive grid).
- */
-
-import type { UseCase } from "@/types/requirements"
+import { mapUseCaseGeneration } from "@/types/requirements"
 import { UseCaseCard } from "./UseCaseCard"
 
-interface Props {
-  useCases: UseCase[]
-}
-
-export function UseCasesGrid({ useCases }: Props) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function DiagramsGrid({ data }: { data: any }) {
+  const generation = mapUseCaseGeneration(data)
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {useCases.map(uc => (
-        <UseCaseCard key={uc.id} useCase={uc} />
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {generation.diagrams.map(d => (
+        <UseCaseCard
+          key={d.part}
+          diagram={d}
+          projectId={generation.projectId}
+          showProject
+        />
       ))}
     </div>
   )

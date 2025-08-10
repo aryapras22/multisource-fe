@@ -5,11 +5,8 @@ import { useRequirementsGeneration } from "@/hooks/useRequirementsGeneration"
 import { RequirementsHeader } from "@/components/requirements/RequirementsHeader"
 import { StatsOverview } from "@/components/requirements/StatsOverview"
 import { UserStoriesList } from "@/components/requirements/UserStoriesList"
-import { UseCasesGrid } from "@/components/requirements/UseCasesGrid"
 import { GenerationProgress } from "@/components/requirements/GenerationProgress"
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const placeholderUseCases: any[] = []
+import { DiagramsGrid } from "@/components/requirements/UseCasesGrid"
 
 export default function RequirementsPage() {
   const { id } = useParams<{ id: string }>()
@@ -22,6 +19,7 @@ export default function RequirementsPage() {
     progress,
     steps,
     userStories,
+    useCases,
     stepErrors,
     stepStats,
     isComplete,
@@ -54,7 +52,7 @@ export default function RequirementsPage() {
 
   const errorCount = stepErrors.filter(Boolean).length
   const storiesCount = userStories.length
-
+  const usecaseCount = useCases.diagrams_url?.length ?? 0
   return (
     <div className="min-h-screen bg-white p-6">
       <div className="max-w-7xl mx-auto py-8">
@@ -63,13 +61,13 @@ export default function RequirementsPage() {
           onExport={handleExport}
           onStartPlanning={handleStartDevelopment}
           userStoriesCount={storiesCount}
-          useCasesCount={placeholderUseCases.length}
+          useCasesCount={usecaseCount}
         />
 
         <div className="flex items-start justify-between mb-4 gap-4">
           <StatsOverview
             userStoriesCount={storiesCount}
-            useCasesCount={placeholderUseCases.length}
+            useCasesCount={usecaseCount}
           />
           {isComplete && (
             <button
@@ -93,7 +91,7 @@ export default function RequirementsPage() {
               User Stories ({storiesCount})
             </TabsTrigger>
             <TabsTrigger value="use-cases" className="data-[state=active]:bg-white data-[state=active]:text-black">
-              Use Case Diagrams ({placeholderUseCases.length})
+              Use Case Diagrams ({usecaseCount})
             </TabsTrigger>
           </TabsList>
           <TabsContent value="user-stories" className="mt-6">
@@ -106,7 +104,7 @@ export default function RequirementsPage() {
             )}
           </TabsContent>
           <TabsContent value="use-cases" className="mt-6">
-            <UseCasesGrid useCases={placeholderUseCases} />
+            <DiagramsGrid data={useCases} />
           </TabsContent>
         </Tabs>
       </div>

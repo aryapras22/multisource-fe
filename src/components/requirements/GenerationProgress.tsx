@@ -36,7 +36,7 @@ export function GenerationProgress({
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-black tracking-tight mb-3">Generating Requirements</h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Analyzing collected data sources to produce user stories and (placeholder) use cases.
+            Analyzing collected data sources to produce user stories and use cases.
           </p>
           {errorCount > 0 && (
             <div className="mt-4 inline-block rounded-md bg-red-50 px-3 py-1 text-sm text-red-700 border border-red-200">

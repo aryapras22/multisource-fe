@@ -5,8 +5,9 @@ import { getReviews } from "@/services/appsService"
 import { getNews } from "@/services/newsService"
 import { getTweets } from "@/services/socialService"
 import { cleanContent, extractUserStory, getProjectUserStories } from "@/services/userStoryService"
-import type { UserStory, GenerationStep } from "@/types/requirements"
+import type { UserStory, GenerationStep, UseCaseGeneration } from "@/types/requirements"
 import { fetchDataState, updateFetchDataState } from "@/services/projectService"
+import { generateUseCases, getUseCases } from "@/services/useCaseService"
 
 interface UseRequirementsGenerationOptions {
   projectId?: string
@@ -37,7 +38,9 @@ export function useRequirementsGeneration({
   const [currentStep, setCurrentStep] = useState(0)
   const [progress, setProgress] = useState(0)
   const [userStories, setUserStories] = useState<UserStory[]>([])
-
+  const [useCases, setUseCases] = useState<Partial<UseCaseGeneration>>({
+    diagrams_url: []
+  })
   const [stepErrors, setStepErrors] = useState<(string | null)[]>(
     () => Array(generationSteps.length).fill(null)
   )
@@ -143,7 +146,13 @@ export function useRequirementsGeneration({
   }, [projectId])
 
   const stepUseCasesPlaceholder: StepFn = useCallback(async () => {
-    // Placeholder; just mark done
+    if (!projectId) return
+    setStepProgress(4, 0)
+    const useCases = await generateUseCases({ project_id: projectId })
+    if (useCases) {
+      setUseCases(useCases)
+      await updateFetchDataState({ project_id: projectId, useCase: true })
+    }
     setStepProgress(4, 1)
   }, [])
 
@@ -161,13 +170,19 @@ export function useRequirementsGeneration({
       const states = await fetchDataState({ project_id: projectId })
       if (states.userStories) {
         const stories = await getProjectUserStories({ project_id: projectId })
-        console.log(stories)
         setUserStories(stories)
+        if (states.useCase) {
+          const cases = await getUseCases({ project_id: projectId })
+          if (cases) {
+            setUseCases(cases)
+          }
+        }
         setIsComplete(true)
         setIsGenerating(false)
         setProgress(100)
         return true
       }
+
       return false
     } catch (e) {
       console.error(e)
@@ -235,6 +250,7 @@ export function useRequirementsGeneration({
     // data
     userStories,
     steps: generationSteps,
+    useCases,
     // diagnostics
     stepErrors,
     stepStats,
