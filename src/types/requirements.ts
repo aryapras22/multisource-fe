@@ -17,7 +17,7 @@ export interface UserStory {
   who: string
   what: string
   why: string | null
-  sources: Source
+  source_data: Source
 }
 
 export interface UseCase {

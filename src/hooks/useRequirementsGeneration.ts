@@ -1,124 +1,246 @@
-/**
- * Encapsulates the timed generation simulation.
- * Return values can later be wired to real async jobs.
- */
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useCallback, useEffect, useRef, useState } from "react"
 import { getReviews } from "@/services/appsService"
 import { getNews } from "@/services/newsService"
 import { getTweets } from "@/services/socialService"
 import { cleanContent, extractUserStory, getProjectUserStories } from "@/services/userStoryService"
 import type { UserStory, GenerationStep } from "@/types/requirements"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { fetchDataState, updateFetchDataState } from "@/services/projectService"
 
 interface UseRequirementsGenerationOptions {
   projectId?: string
-  steps?: GenerationStep[]
   autoStart?: boolean
-  stepDelayMinMs?: number
-  stepDelayMaxMs?: number
 }
+
 export const generationSteps: GenerationStep[] = [
   { name: "Analyzing App Data", description: "Processing collected app reviews and features" },
   { name: "Processing News Articles", description: "Extracting insights from industry trends" },
   { name: "Analyzing Social Media", description: "Understanding user sentiment and discussions" },
   { name: "Generating User Stories", description: "Creating user-centered requirements" },
-  { name: "Creating Use Cases", description: "Defining system interactions and workflows" },
+  { name: "Creating Use Cases", description: "Defining system interactions and workflows" }, // placeholder
 ]
+
+type StepFn = () => Promise<void>
+
+interface StepStats {
+  processed: number
+  failed: number
+}
 
 export function useRequirementsGeneration({
   projectId,
-  autoStart = true,
-  stepDelayMinMs = 2000,
-  stepDelayMaxMs = 3000
+  autoStart = true
 }: UseRequirementsGenerationOptions) {
   const [isGenerating, setIsGenerating] = useState(autoStart)
+  const [isComplete, setIsComplete] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const [progress, setProgress] = useState(0)
   const [userStories, setUserStories] = useState<UserStory[]>([])
+
+  const [stepErrors, setStepErrors] = useState<(string | null)[]>(
+    () => Array(generationSteps.length).fill(null)
+  )
+  const [stepStats, setStepStats] = useState<StepStats[]>(
+    () => Array(generationSteps.length).fill(0).map(() => ({ processed: 0, failed: 0 }))
+  )
+
   const cancelRef = useRef(false)
+  const runningRef = useRef(false)
 
+  const totalSteps = generationSteps.length
+  const setStepProgress = (stepIndex: number, innerFraction: number) => {
+    setProgress(Number((((stepIndex + innerFraction) / totalSteps) * 100).toFixed(2)))
+  }
 
-  const extractReviewUserStories = useCallback(async () => {
+  const recordItemResult = (stepIndex: number, ok: boolean) => {
+    setStepStats(prev => {
+      const next = [...prev]
+      const stats = { ...next[stepIndex] }
+      if (ok) stats.processed += 1
+      else stats.failed += 1
+      next[stepIndex] = stats
+      return next
+    })
+  }
+
+  const safeExecute = async (stepIndex: number, fn: StepFn) => {
+    try {
+      setStepProgress(stepIndex, 0)
+      await fn()
+      // ensure step ends at 100% if fn didn't already
+      setStepProgress(stepIndex, 1)
+    } catch (e: any) {
+      setStepErrors(prev => {
+        const next = [...prev]
+        next[stepIndex] = e?.message || "Unknown error"
+        return next
+      })
+      // mark step complete so overall progress can continue
+      setStepProgress(stepIndex, 1)
+    }
+  }
+
+  const loopExtract = async <T extends { _id: string }>(
+    items: T[],
+    stepIndex: number,
+    source: "review" | "news" | "tweet"
+  ) => {
+    const len = items.length
+    if (len === 0) {
+      setStepProgress(stepIndex, 1)
+      return
+    }
+    for (let i = 0; i < len; i++) {
+      if (cancelRef.current) break
+      try {
+        const item = items[i]
+        const cleanedText = await cleanContent({ content_id: item._id, source })
+        if (!cleanedText) {
+          recordItemResult(stepIndex, false)
+        } else {
+          await extractUserStory({
+            project_id: projectId!,
+            source,
+            source_id: item._id,
+            content: cleanedText
+          })
+          recordItemResult(stepIndex, true)
+        }
+      } catch {
+        recordItemResult(stepIndex, false)
+      }
+      setStepProgress(stepIndex, (i + 1) / len)
+    }
+  }
+
+  // Step implementations
+  const stepReviews: StepFn = useCallback(async () => {
     if (!projectId) return
     const reviews = await getReviews({ project_id: projectId })
-    for (const r of reviews) {
-      if (cancelRef.current) break
-      const cleanedText = await cleanContent({
-        content_id: r._id,
-        source: "review"
-      })
-      if (!cleanedText) continue;
-      const res = await extractUserStory({
-        project_id: projectId,
-        source: "review",
-        source_id: r._id,
-        content: cleanedText
-      })
-      console.log(res)
-    }
+    await loopExtract(reviews, 0, "review")
   }, [projectId])
 
-  const extractNewsUserStories = useCallback(async () => {
-    if (!projectId) return;
+  const stepNews: StepFn = useCallback(async () => {
+    if (!projectId) return
     const news = await getNews({ project_id: projectId })
-    for (const n of news) {
-      if (cancelRef.current) break;
-      const cleanedText = await cleanContent({
-        content_id: n._id,
-        source: "news"
-      });
-      if (!cleanedText) continue;
-      const res = await extractUserStory({
-        project_id: projectId,
-        source: "news",
-        source_id: n._id,
-        content: cleanedText,
-      })
-      console.log(res)
-    }
-
+    await loopExtract(news, 1, "news")
   }, [projectId])
 
-  const extractTweetsUserStories = useCallback(async () => {
-    if (!projectId) return;
+  const stepTweets: StepFn = useCallback(async () => {
+    if (!projectId) return
     const tweets = await getTweets({ project_id: projectId })
-    for (const t of tweets) {
-      if (cancelRef.current) break;
-      const cleanedText = await cleanContent({
-        content_id: t._id,
-        source: "tweet"
-      });
-      if (!cleanedText) continue;
-      const res = await extractUserStory({
-        project_id: projectId,
-        source: "tweet",
-        source_id: t._id,
-        content: cleanedText,
-      })
-      console.log(res)
+    await loopExtract(tweets, 2, "tweet")
+  }, [projectId])
+
+  const stepFetchStories: StepFn = useCallback(async () => {
+    if (!projectId) return
+    setStepProgress(3, 0)
+    const stories = await getProjectUserStories({ project_id: projectId })
+    setUserStories(stories)
+    await updateFetchDataState({ project_id: projectId, userStories: true })
+    setStepProgress(3, 1)
+  }, [projectId])
+
+  const stepUseCasesPlaceholder: StepFn = useCallback(async () => {
+    // Placeholder; just mark done
+    setStepProgress(4, 1)
+  }, [])
+
+  const stepFns: StepFn[] = [
+    stepReviews,
+    stepNews,
+    stepTweets,
+    stepFetchStories,
+    stepUseCasesPlaceholder
+  ]
+
+  const fetchInitialData = useCallback(async () => {
+    if (!projectId) return
+    try {
+      const states = await fetchDataState({ project_id: projectId })
+      if (states.userStories) {
+        const stories = await getProjectUserStories({ project_id: projectId })
+        console.log(stories)
+        setUserStories(stories)
+        setIsComplete(true)
+        setIsGenerating(false)
+        setProgress(100)
+        return true
+      }
+      return false
+    } catch (e) {
+      console.error(e)
     }
   }, [projectId])
 
-  const fetchProjectUserStories = useCallback(async () => {
-    if (!projectId) return;
-    const userStories = await getProjectUserStories({ project_id: projectId })
-    setUserStories(userStories);
-  }, [projectId])
-
-
+  // Runner
   useEffect(() => {
-    if (!isGenerating) return
-  }, [isGenerating, stepDelayMinMs, stepDelayMaxMs])
+    if (!isGenerating || runningRef.current || !projectId) return
+    runningRef.current = true
+    cancelRef.current = false
+    setIsComplete(false)
+
+      ; (async () => {
+        try {
+          const initial = await fetchInitialData()
+          console.log("initial :", initial)
+          if (!initial) {
+            if (cancelRef.current) return
+            for (let i = currentStep; i < stepFns.length; i++) {
+              if (cancelRef.current) break
+              setCurrentStep(i)
+              await safeExecute(i, stepFns[i])
+            }
+            if (!cancelRef.current) {
+              setProgress(100)
+              setIsComplete(true)
+              setIsGenerating(false)
+            }
+          }
+        } finally {
+          runningRef.current = false
+        }
+      })()
+  }, [isGenerating, projectId, currentStep, stepFns])
+
+  // Controls
+  const restart = () => {
+    if (runningRef.current) return
+    setCurrentStep(0)
+    setProgress(0)
+    setUserStories([])
+    setIsComplete(false)
+    setStepErrors(Array(totalSteps).fill(null))
+    setStepStats(Array(totalSteps).fill(0).map(() => ({ processed: 0, failed: 0 })))
+    setIsGenerating(true)
+  }
+
+  const cancel = () => {
+    cancelRef.current = true
+    setIsGenerating(false)
+  }
+
+  const start = () => {
+    if (runningRef.current) return
+    setIsGenerating(true)
+  }
 
   return {
+    // status
     isGenerating,
+    isComplete,
     currentStep,
     progress,
+    // data
     userStories,
     steps: generationSteps,
-    restart: () => {
-      setCurrentStep(0)
-      setProgress(0)
-      setIsGenerating(true)
-    }
+    // diagnostics
+    stepErrors,
+    stepStats,
+    // controls
+    start,
+    restart,
+    cancel
   }
 }

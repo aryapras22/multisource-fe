@@ -31,7 +31,17 @@ export function SourcesList({ source }: Props) {
               )}
             </div>
             {source.author && <p className="text-xs text-gray-500 mb-2">by {source.author}</p>}
-            <p className="text-sm text-gray-700 leading-relaxed">{source.content}</p>
+            <p
+              className="text-sm text-gray-700 leading-relaxed line-clamp-3"
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden"
+              }}
+            >
+              {source.content}
+            </p>
             {source.link && (
               <Button
                 variant="outline"

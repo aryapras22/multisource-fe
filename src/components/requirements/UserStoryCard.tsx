@@ -48,7 +48,7 @@ export function UserStoryCard({ story }: Props) {
         </div>
         <div>
           <h4 className="font-medium text-black mb-3">Source</h4>
-          <SourcesList source={story.sources} />
+          <SourcesList source={story.source_data} />
         </div>
       </CardContent>
     </Card>
