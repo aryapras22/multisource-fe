@@ -17,6 +17,20 @@ export async function getProjectUserStories(params: { project_id: string }) {
   return apiGet<UserStory[]>(`/get-project-user-stories?project_id=${params.project_id}`)
 }
 
+export async function extractUserStoryWithAI(body: {
+  content_type: string;
+  project_id: string,
+  content_id: string;
+  content: string;
+  persist?: boolean
+}) {
+  return apiPost(`/ai/generate-user-stories`, body)
+}
+export async function getProjectUserStoriesAI(params: { project_id: string }) {
+  return apiGet(`/ai/user-stories?project_id=${params.project_id}`)
+}
+
+
 export async function cleanContent(params: { content_id: string; source: string }) {
   switch (params.source) {
     case "review":

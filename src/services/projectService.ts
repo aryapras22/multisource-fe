@@ -7,6 +7,8 @@ interface DataState {
   socialMedia: boolean
   userStories?: boolean
   useCase?: boolean
+  aiUserStories?: boolean
+  aiUseCase?: boolean
 }
 
 export interface UpdateFetchStateRequest {
@@ -17,6 +19,8 @@ export interface UpdateFetchStateRequest {
   reviews?: boolean
   userStories?: boolean
   useCase?: boolean
+  aiUserStories?: boolean
+  aiUseCase?: boolean
 }
 
 export async function fetchProjectQueries(params: {

@@ -4,7 +4,7 @@ import CreateProjectPage from "./pages/CreateProject"
 import ConfigurePage from "./pages/ConfigurePage"
 import DashboardPage from "./pages/DashboardPage"
 import RequirementsPage from "./pages/RequirementsPage"
-// import AIRequirementsPage from "./pages/AIRequirementsPage"
+import AIRequirementsPage from "./pages/AIRequirementsPage"
 
 function App() {
   return (
@@ -18,7 +18,7 @@ function App() {
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="configure" element={<ConfigurePage />} />
           <Route path="requirements" element={<RequirementsPage />} />
-          {/* <Route path="ai-requirements" element={<AIRequirementsPage />} /> */}
+          <Route path="ai-requirements" element={<AIRequirementsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
