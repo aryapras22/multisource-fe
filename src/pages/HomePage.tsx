@@ -111,7 +111,7 @@ function HomePage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-black tracking-tight">Requirements Elicitation</h1>
+            <h1 className="text-4xl font-bold text-black tracking-tight">Multisource Requirement Elicitation</h1>
             <p className="text-gray-600 mt-2">
               Transform your project ideas into structured software requirements through AI-powered analysis.
             </p>
