@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react"
 import type { NewsArticle } from "@/types/collections"
 import { fetchNewsArticles, getNews } from "@/services/newsService"
-import { fetchDataState, fetchProjectQueries } from "@/services/projectService"
+import { checkAndUpdateProjectStatus, fetchDataState, fetchProjectQueries } from "@/services/projectService"
 
 interface CollectionState<T> {
   items: T[]
@@ -33,6 +33,7 @@ export function useNewsCollection(projectId?: string): UseNewsCollection {
     const fetchInitialData = async () => {
       setNews((s) => ({ ...s, loading: true }))
       const states = await fetchDataState({ project_id: projectId })
+      await checkAndUpdateProjectStatus(projectId)
       if (states.news) {
         const news = await getNews({ project_id: projectId })
         setNews({ items: news, loading: false, loaded: true })
@@ -60,6 +61,7 @@ export function useNewsCollection(projectId?: string): UseNewsCollection {
         setNews(s => ({ ...s, loading: false, error: error.message }))
       }
     }
+    await checkAndUpdateProjectStatus(projectId)
   }, [projectId, newsCount])
 
   return { news, newsCount, setNewsCount, fetchNews }

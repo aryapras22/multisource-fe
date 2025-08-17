@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react"
 import type { SocialPost } from "@/types/collections"
-import { fetchDataState, fetchProjectQueries } from "@/services/projectService"
+import { checkAndUpdateProjectStatus, fetchDataState, fetchProjectQueries } from "@/services/projectService"
 import { fetchTwitter, getTweets } from "@/services/socialService"
 
 interface CollectionState<T> {
@@ -35,6 +35,7 @@ export function useSocialCollection(projectId?: string): UseSocialCollection {
 
     const fetchInitialData = async () => {
       const state = await fetchDataState({ project_id: projectId })
+      await checkAndUpdateProjectStatus(projectId)
       if (state.socialMedia) {
         const tweets = await getTweets({ project_id: projectId })
         setSocial({ items: tweets, loading: false, loaded: true })
@@ -62,6 +63,7 @@ export function useSocialCollection(projectId?: string): UseSocialCollection {
         setSocial(s => ({ ...s, loading: false, error: "An unknown error occurred" }))
       }
     }
+    await checkAndUpdateProjectStatus(projectId)
   }, [projectId, socialCount])
 
   return { social, socialCount, setSocialCount, scrapeSocial }

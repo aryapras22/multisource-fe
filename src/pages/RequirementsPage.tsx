@@ -53,6 +53,7 @@ export default function RequirementsPage() {
   const errorCount = stepErrors.filter(Boolean).length
   const storiesCount = userStories.length
   const usecaseCount = useCases.diagrams_url?.length ?? 0
+  console.log(userStories)
   return (
     <div className="min-h-screen bg-white p-6">
       <div className="max-w-7xl mx-auto py-8">

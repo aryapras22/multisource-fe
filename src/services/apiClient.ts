@@ -26,7 +26,7 @@ export async function apiGet<T>(path: string, signal?: AbortSignal) {
   return res.json() as Promise<T>
 }
 
-export async function apiPost<T>(path: string, body: unknown, signal?: AbortSignal) {
+export async function apiPost<T>(path: string, body?: unknown, signal?: AbortSignal) {
 
   const res = await fetch(BASE_URL + path, {
     method: "POST",
@@ -48,4 +48,15 @@ export async function apiPost<T>(path: string, body: unknown, signal?: AbortSign
   }
 
   return res.json() as Promise<T>
+}
+
+export async function apiPatch<T>(endpoint: string, body?: unknown): Promise<T> {
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: body ? JSON.stringify(body) : null,
+  })
+  return response.json() as Promise<T>
 }

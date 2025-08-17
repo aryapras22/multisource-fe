@@ -4,9 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { getReviews } from "@/services/appsService"
 import { getNews } from "@/services/newsService"
 import { getTweets } from "@/services/socialService"
-import { cleanContent, extractUserStory, getProjectUserStories } from "@/services/userStoryService"
+import { cleanContent, extractUserStory, generateStoryInsight, getProjectUserStories, getProjectUserStoryIds, removeDuplicateStories } from "@/services/userStoryService"
 import type { UserStory, GenerationStep, UseCaseGeneration } from "@/types/requirements"
-import { fetchDataState, updateFetchDataState } from "@/services/projectService"
+import { checkAndUpdateProjectStatus, fetchDataState, updateFetchDataState } from "@/services/projectService"
 import { generateUseCases, getUseCases } from "@/services/useCaseService"
 
 interface UseRequirementsGenerationOptions {
@@ -19,7 +19,7 @@ export const generationSteps: GenerationStep[] = [
   { name: "Processing News Articles", description: "Extracting insights from industry trends" },
   { name: "Analyzing Social Media", description: "Understanding user sentiment and discussions" },
   { name: "Generating User Stories", description: "Creating user-centered requirements" },
-  { name: "Creating Use Cases", description: "Defining system interactions and workflows" }, // placeholder
+  { name: "Creating Use Cases", description: "Defining system interactions and workflows" },
 ]
 
 type StepFn = () => Promise<void>
@@ -139,6 +139,21 @@ export function useRequirementsGeneration({
   const stepFetchStories: StepFn = useCallback(async () => {
     if (!projectId) return
     setStepProgress(3, 0)
+    await removeDuplicateStories({ project_id: projectId })
+    const story_ids = await getProjectUserStoryIds({ project_id: projectId })
+    const len = story_ids.length
+    for (let i = 0; i < len; i++) {
+      if (cancelRef.current) break
+      const id = story_ids[i]
+      try {
+        await generateStoryInsight({ story_id: id })
+        recordItemResult(3, true)
+      } catch (error) {
+        console.error(`Failed to generate insight for story ${id}:`, error)
+        recordItemResult(3, false)
+      }
+      setStepProgress(3, (i + 1) / len)
+    }
     const stories = await getProjectUserStories({ project_id: projectId })
     setUserStories(stories)
     await updateFetchDataState({ project_id: projectId, userStories: true })
@@ -152,6 +167,7 @@ export function useRequirementsGeneration({
     if (useCases) {
       setUseCases(useCases)
       await updateFetchDataState({ project_id: projectId, useCase: true })
+      await checkAndUpdateProjectStatus(projectId)
     }
     setStepProgress(4, 1)
   }, [])

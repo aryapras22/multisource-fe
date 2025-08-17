@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Top header section with navigation + actions.
  */
@@ -36,10 +37,10 @@ export function RequirementsHeader({
           <Download className="h-4 w-4 mr-2" />
           Export (PDF, DOCX, PNG)
         </Button>
-        <Button onClick={onStartPlanning} className="bg-black hover:bg-gray-800 text-white">
+        {/* <Button onClick={onStartPlanning} className="bg-black hover:bg-gray-800 text-white">
           <Target className="h-4 w-4 mr-2" />
           Start Development Planning
-        </Button>
+        </Button> */}
       </div>
     </div>
   )

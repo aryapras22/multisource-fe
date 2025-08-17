@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react"
 import type { App, AppReview } from "@/types/collections"
 import { searchApps, fetchAppReviews, getApps, getReviews } from "@/services/appsService"
-import { fetchDataState } from "@/services/projectService"
+import { checkAndUpdateProjectStatus, fetchDataState } from "@/services/projectService"
 
 /**
  * Hook state shape for a generic collection with loading flags.
@@ -57,6 +57,7 @@ export function useAppsCollection(projectId?: string): UseAppsCollection {
       setAppsState((s) => ({ ...s, loading: true }))
       setReviewsState((s) => ({ ...s, loading: true }))
       const states = await fetchDataState({ project_id: projectId })
+      await checkAndUpdateProjectStatus(projectId)
       if (states.appStores) {
         const apps = await getApps({ project_id: projectId })
         setAppsState({ items: apps, loading: false, loaded: true })
@@ -126,7 +127,7 @@ export function useAppsCollection(projectId?: string): UseAppsCollection {
     } finally {
       setReviewsLoadingId(null)
     }
-
+    await checkAndUpdateProjectStatus(projectId)
 
 
   }, [projectId, reviewsPerApp])
@@ -136,6 +137,7 @@ export function useAppsCollection(projectId?: string): UseAppsCollection {
     for (const app of targets) {
       await getReviewsForApp(app._id, app.store)
     }
+
   }, [appsState.items, getReviewsForApp])
 
   return {

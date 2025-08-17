@@ -13,11 +13,24 @@ export interface Source {
 
 export interface UserStory {
   _id: string
-  title: string
   who: string
   what: string
   why: string | null
-  source_data: Source
+  full_sentence: string
+  similarity_score: number
+  source: "review" | "news" | "tweet"
+  source_id: string
+  project_id: string
+  insight?: {
+    nfr: string[]
+    business_impact: string
+    pain_point_jtbd: string
+    fit_score?: {
+      score: number
+      explanation: string
+    }
+  }
+  source_data?: Source
 }
 
 export interface UseCaseGeneration {

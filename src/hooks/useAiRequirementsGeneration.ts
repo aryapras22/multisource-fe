@@ -31,6 +31,11 @@ export interface AiUserStory {
   content_id: string
   content_type: "review" | "news" | "tweet"
   created_at: string
+  field_insight?: {
+    nfr: string[]
+    business_impact: string
+    pain_point_jtbd: string
+  }
   source_data?: {
     type: string
     title: string
