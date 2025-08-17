@@ -1,5 +1,6 @@
 import type { UserStory } from "@/types/requirements";
 import { apiPost, apiGet } from "./apiClient";
+import type { ClusteringData } from "@/types/clustering";
 
 
 interface Insight {
@@ -70,4 +71,27 @@ export async function cleanContent(params: { content_id: string; source: string 
     default:
       return null
   }
+}
+
+
+export async function getClusteredUserStories(params: {
+  project_id: string;
+  distance?: number;
+}) {
+  let url = `/clustering/user_stories/${params.project_id}`;
+  if (params.distance !== undefined) {
+    url += `?distance=${params.distance}`;
+  }
+  return apiGet<ClusteringData>(url);
+}
+
+export async function getClusteredAIUserStories(params: {
+  project_id: string;
+  distance?: number;
+}) {
+  let url = `/clustering/ai_user_stories/${params.project_id}`;
+  if (params.distance !== undefined) {
+    url += `?distance=${params.distance}`;
+  }
+  return apiGet<ClusteringData>(url);
 }

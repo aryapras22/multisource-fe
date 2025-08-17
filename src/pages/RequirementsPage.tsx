@@ -7,6 +7,7 @@ import { StatsOverview } from "@/components/requirements/StatsOverview"
 import { UserStoriesList } from "@/components/requirements/UserStoriesList"
 import { GenerationProgress } from "@/components/requirements/GenerationProgress"
 import { DiagramsGrid } from "@/components/requirements/UseCasesGrid"
+import { ClusterView } from "@/components/stories-clusters/ClusterView"
 
 export default function RequirementsPage() {
   const { id } = useParams<{ id: string }>()
@@ -20,6 +21,7 @@ export default function RequirementsPage() {
     steps,
     userStories,
     useCases,
+    clusters,
     stepErrors,
     stepStats,
     isComplete,
@@ -53,7 +55,8 @@ export default function RequirementsPage() {
   const errorCount = stepErrors.filter(Boolean).length
   const storiesCount = userStories.length
   const usecaseCount = useCases.diagrams_url?.length ?? 0
-  console.log(userStories)
+  const clusterCount = clusters?.clusters?.length ?? 0
+  console.log(clusters)
   return (
     <div className="min-h-screen bg-white p-6">
       <div className="max-w-7xl mx-auto py-8">
@@ -87,9 +90,12 @@ export default function RequirementsPage() {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 bg-gray-100">
+          <TabsList className="grid w-full grid-cols-3 bg-gray-100">
             <TabsTrigger value="user-stories" className="data-[state=active]:bg-white data-[state=active]:text-black">
               User Stories ({storiesCount})
+            </TabsTrigger>
+            <TabsTrigger value="stories-clusters" className="data-[state=active]:bg-white data-[state=active]:text-black">
+              Stories Clusters  ({clusterCount})
             </TabsTrigger>
             <TabsTrigger value="use-cases" className="data-[state=active]:bg-white data-[state=active]:text-black">
               Use Case Diagrams ({usecaseCount})
@@ -104,11 +110,20 @@ export default function RequirementsPage() {
               </div>
             )}
           </TabsContent>
+          <TabsContent value="stories-clusters" className="mt-6">
+            {clusters ? (
+              <ClusterView data={clusters} />
+            ) : (
+              <div className="text-sm text-gray-600 border rounded-md p-6">
+                No story clusters generated.
+              </div>
+            )}
+          </TabsContent>
           <TabsContent value="use-cases" className="mt-6">
             <DiagramsGrid data={useCases} />
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </div >
   )
 }

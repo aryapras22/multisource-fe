@@ -7,11 +7,13 @@ import { getTweets } from "@/services/socialService"
 import {
   cleanContent,
   extractUserStoryWithAI,
+  getClusteredAIUserStories,
   getProjectUserStoriesAI
 } from "@/services/userStoryService"
 import { generateAiUseCases, getAiUseCases } from "@/services/useCaseService"
 import type { GenerationStep, UseCaseGeneration } from "@/types/requirements"
 import { fetchDataState, updateFetchDataState } from "@/services/projectService"
+import type { ClusteringData, ClusterStory } from "@/types/clustering"
 
 interface UseAiRequirementsGenerationOptions {
   projectId?: string
@@ -67,7 +69,7 @@ export function useAiRequirementsGeneration({
   const [isComplete, setIsComplete] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const [progress, setProgress] = useState(0)
-
+  const [clusters, setClusters] = useState<ClusteringData>()
   const [aiUserStories, setAiUserStories] = useState<AiUserStory[]>([])
   const [aiUseCases, setAiUseCases] = useState<Partial<UseCaseGeneration>>({
     diagrams_url: []
@@ -82,6 +84,38 @@ export function useAiRequirementsGeneration({
 
   const cancelRef = useRef(false)
   const runningRef = useRef(false)
+
+  const transformRawStory = (rawStory: any): ClusterStory => {
+    return {
+      ...rawStory,
+      full_sentence: rawStory.as_a_i_want_so_that,
+      similarity_score: rawStory.confidence,
+      source: rawStory.content_type,
+      source_id: rawStory.content_id,
+      insight: rawStory.field_insight
+        ? {
+          ...rawStory.field_insight,
+          fit_score: {
+            score: rawStory.confidence,
+            explanation: `Derived from story confidence score.`
+          }
+        }
+        : undefined
+    }
+  }
+
+
+  const transformClusterData = (rawData: any): ClusteringData => {
+    return {
+      project_id: rawData.project_id,
+      clusters: rawData.clusters.map((cluster: any) => ({
+        ...cluster,
+        representative_story: transformRawStory(cluster.representative_story),
+        stories: cluster.stories.map(transformRawStory)
+      }))
+    }
+  }
+
 
   const totalSteps = aiGenerationSteps.length
   const setStepProgress = (stepIndex: number, innerFraction: number) => {
@@ -177,6 +211,11 @@ export function useAiRequirementsGeneration({
       setAiUseCases(useCases)
       await updateFetchDataState({ project_id: projectId, aiUseCase: true })
     }
+    const rawClusters = await getClusteredAIUserStories({ project_id: projectId })
+    if (rawClusters) {
+      const transformed = transformClusterData(rawClusters)
+      setClusters(transformed)
+    }
     setStepProgress(2, 1)
   }, [projectId])
 
@@ -189,16 +228,22 @@ export function useAiRequirementsGeneration({
       if (states.aiUserStories) {
         const stories = await getProjectUserStoriesAI({ project_id: projectId }) as AiUserStory[]
         setAiUserStories(stories)
+
         if (states.aiUseCase) {
           const cases = await getAiUseCases({ project_id: projectId })
           if (cases) {
             setAiUseCases(cases)
           }
         }
+        const rawClusters = await getClusteredAIUserStories({ project_id: projectId })
+        if (rawClusters) {
+          const transformed = transformClusterData(rawClusters)
+          setClusters(transformed)
+        }
         setIsComplete(true)
         setIsGenerating(false)
         setProgress(100)
-        console.log(states)
+
         return true
       }
       return false
@@ -218,7 +263,7 @@ export function useAiRequirementsGeneration({
       ; (async () => {
         try {
           const initialDataLoaded = await fetchInitialData()
-          console.log(initialDataLoaded)
+
           if (!initialDataLoaded) {
             if (cancelRef.current) return
             for (let i = currentStep; i < stepFns.length; i++) {
@@ -270,6 +315,7 @@ export function useAiRequirementsGeneration({
     // data
     aiUserStories,
     aiUseCases,
+    clusters,
     steps: aiGenerationSteps,
     // diagnostics
     stepErrors,

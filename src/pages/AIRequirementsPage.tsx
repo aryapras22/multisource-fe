@@ -7,6 +7,7 @@ import { GenerationProgress } from "@/components/requirements/GenerationProgress
 import { useAiRequirementsGeneration } from "@/hooks/useAiRequirementsGeneration"
 import { AiUserStoriesList } from "@/components/ai-requirements/AiUserStoriesList"
 import { DiagramsGrid } from "@/components/requirements/UseCasesGrid"
+import { ClusterView } from "@/components/stories-clusters/ClusterView"
 
 export default function AIRequirementsPage() {
   const { id } = useParams<{ id: string }>()
@@ -20,6 +21,7 @@ export default function AIRequirementsPage() {
     steps,
     aiUserStories,
     aiUseCases,
+    clusters,
     stepErrors,
     stepStats,
     isComplete,
@@ -52,6 +54,8 @@ export default function AIRequirementsPage() {
 
   const errorCount = stepErrors.filter(Boolean).length
   const storiesCount = aiUserStories.length
+  const clusterCount = clusters?.clusters?.length ?? 0
+
 
   return (
     <div className="min-h-screen bg-white p-6">
@@ -86,9 +90,12 @@ export default function AIRequirementsPage() {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 bg-gray-100">
+          <TabsList className="grid w-full grid-cols-3 bg-gray-100">
             <TabsTrigger value="user-stories" className="data-[state=active]:bg-white data-[state=active]:text-black">
               User Stories ({storiesCount})
+            </TabsTrigger>
+            <TabsTrigger value="stories-clusters" className="data-[state=active]:bg-white data-[state=active]:text-black">
+              Stories Clusters  ({clusterCount})
             </TabsTrigger>
             <TabsTrigger value="use-cases" className="data-[state=active]:bg-white data-[state=active]:text-black">
               Use Case Diagrams ({aiUseCases.diagrams_url?.length ?? 0})
@@ -100,6 +107,15 @@ export default function AIRequirementsPage() {
             ) : (
               <div className="text-sm text-gray-600 border rounded-md p-6">
                 No AI user stories generated.
+              </div>
+            )}
+          </TabsContent>
+          <TabsContent value="stories-clusters" className="mt-6">
+            {clusters ? (
+              <ClusterView data={clusters} />
+            ) : (
+              <div className="text-sm text-gray-600 border rounded-md p-6">
+                No story clusters generated.
               </div>
             )}
           </TabsContent>

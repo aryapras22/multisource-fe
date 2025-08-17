@@ -4,10 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { getReviews } from "@/services/appsService"
 import { getNews } from "@/services/newsService"
 import { getTweets } from "@/services/socialService"
-import { cleanContent, extractUserStory, generateStoryInsight, getProjectUserStories, getProjectUserStoryIds, removeDuplicateStories } from "@/services/userStoryService"
+import { cleanContent, extractUserStory, generateStoryInsight, getClusteredUserStories, getProjectUserStories, getProjectUserStoryIds, removeDuplicateStories } from "@/services/userStoryService"
 import type { UserStory, GenerationStep, UseCaseGeneration } from "@/types/requirements"
 import { checkAndUpdateProjectStatus, fetchDataState, updateFetchDataState } from "@/services/projectService"
 import { generateUseCases, getUseCases } from "@/services/useCaseService"
+import type { ClusteringData } from "@/types/clustering"
 
 interface UseRequirementsGenerationOptions {
   projectId?: string
@@ -41,6 +42,7 @@ export function useRequirementsGeneration({
   const [useCases, setUseCases] = useState<Partial<UseCaseGeneration>>({
     diagrams_url: []
   })
+  const [clusters, setClusters] = useState<ClusteringData>()
   const [stepErrors, setStepErrors] = useState<(string | null)[]>(
     () => Array(generationSteps.length).fill(null)
   )
@@ -156,6 +158,8 @@ export function useRequirementsGeneration({
     }
     const stories = await getProjectUserStories({ project_id: projectId })
     setUserStories(stories)
+    const clusters = await getClusteredUserStories({ project_id: projectId })
+    setClusters(clusters)
     await updateFetchDataState({ project_id: projectId, userStories: true })
     setStepProgress(3, 1)
   }, [projectId])
@@ -187,12 +191,15 @@ export function useRequirementsGeneration({
       if (states.userStories) {
         const stories = await getProjectUserStories({ project_id: projectId })
         setUserStories(stories)
+
         if (states.useCase) {
           const cases = await getUseCases({ project_id: projectId })
           if (cases) {
             setUseCases(cases)
           }
         }
+        const clusters = await getClusteredUserStories({ project_id: projectId })
+        setClusters(clusters)
         setIsComplete(true)
         setIsGenerating(false)
         setProgress(100)
@@ -267,6 +274,7 @@ export function useRequirementsGeneration({
     userStories,
     steps: generationSteps,
     useCases,
+    clusters,
     // diagnostics
     stepErrors,
     stepStats,
