@@ -56,7 +56,6 @@ export default function RequirementsPage() {
   const storiesCount = userStories.length
   const usecaseCount = useCases.diagrams_url?.length ?? 0
   const clusterCount = clusters?.clusters?.length ?? 0
-  console.log(clusters)
   return (
     <div className="min-h-screen bg-white p-6">
       <div className="max-w-7xl mx-auto py-8">

@@ -59,25 +59,27 @@ export function AppCard({ app, reviewsPerApp, onGetReviews, reviewsLoading }: Ap
               View App
             </a>
           </Button>
-          <Button
-            onClick={() => onGetReviews(app.appId)}
-            disabled={app.reviewsCollected || reviewsLoading}
-            className="w-full h-8 text-xs bg-black hover:bg-gray-800 text-white disabled:bg-gray-200 disabled:text-gray-400"
-          >
-            {reviewsLoading ? (
-              <>
-                <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                Getting {reviewsPerApp} Reviews...
-              </>
-            ) : app.reviewsCollected ? (
-              <>
-                <CheckCircle className="h-3 w-3 mr-2" />
-                Reviews Collected
-              </>
-            ) : (
-              `Get ${reviewsPerApp} Reviews`
-            )}
-          </Button>
+          {
+            reviewsPerApp !== 0 && <Button
+              onClick={() => onGetReviews(app.appId)}
+              disabled={app.reviewsCollected || reviewsLoading}
+              className="w-full h-8 text-xs bg-black hover:bg-gray-800 text-white disabled:bg-gray-200 disabled:text-gray-400"
+            >
+              {reviewsLoading ? (
+                <>
+                  <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                  Getting {reviewsPerApp} Reviews...
+                </>
+              ) : app.reviewsCollected ? (
+                <>
+                  <CheckCircle className="h-3 w-3 mr-2" />
+                  Reviews Collected
+                </>
+              ) : (
+                `Get ${reviewsPerApp} Reviews`
+              )}
+            </Button>
+          }
         </div>
       </CardContent>
     </Card>

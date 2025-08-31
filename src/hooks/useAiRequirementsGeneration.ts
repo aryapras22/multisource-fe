@@ -161,15 +161,23 @@ export function useAiRequirementsGeneration({
       ...tweets.map(item => ({ ...item, source: "tweet" as const }))
     ]
 
+    for (let i = allContent.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [allContent[i], allContent[j]] = [allContent[j], allContent[i]]
+    }
+
+    const limit = parseInt(import.meta.env.VITE_AI_STORY_GENERATION_LIMIT || '70', 10)
+    const selectedContent = allContent.slice(0, limit);
+
     const total = allContent.length
     if (total === 0) {
       setStepProgress(0, 1)
       return
     }
 
-    for (let i = 0; i < allContent.length; i++) {
+    for (let i = 0; i < selectedContent.length; i++) {
       if (cancelRef.current) break
-      const item = allContent[i]
+      const item = selectedContent[i]
       try {
         const cleaned = await cleanContent({ content_id: item._id, source: item.source })
         if (cleaned) {
@@ -182,7 +190,6 @@ export function useAiRequirementsGeneration({
           })
           recordItemResult(0, true)
         } else {
-          // cleanContent returned empty, but didn't throw, count as failure for this step
           recordItemResult(0, false)
         }
       } catch {

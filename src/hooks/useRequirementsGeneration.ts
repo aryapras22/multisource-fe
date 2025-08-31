@@ -143,10 +143,19 @@ export function useRequirementsGeneration({
     setStepProgress(3, 0)
     await removeDuplicateStories({ project_id: projectId })
     const story_ids = await getProjectUserStoryIds({ project_id: projectId })
-    const len = story_ids.length
+
+    for (let i = story_ids.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [story_ids[i], story_ids[j]] = [story_ids[j], story_ids[i]]
+    }
+
+    const limit = parseInt(import.meta.env.VITE_STORY_INSIGHT_LIMIT || '70', 10)
+    const selectedIds = story_ids.slice(0, limit)
+    const len = selectedIds.length
+
     for (let i = 0; i < len; i++) {
       if (cancelRef.current) break
-      const id = story_ids[i]
+      const id = selectedIds[i]
       try {
         await generateStoryInsight({ story_id: id })
         recordItemResult(3, true)

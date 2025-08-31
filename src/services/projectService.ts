@@ -91,3 +91,7 @@ export async function checkAndUpdateProjectStatus(projectId: string) {
     throw error
   }
 }
+
+export async function getProjectSummary(params: { project_id: string }) {
+  return apiGet(`/projects/${params.project_id}/all-data`)
+}
