@@ -50,9 +50,9 @@ export function UserStoryCard({ story }: Props) {
               <Badge variant="outline" className="font-mono text-xs">
                 {story._id.substring(0, 8)}
               </Badge>
-              <Badge variant="outline" className={getSimilarityColor(story.similarity_score)}>
+              {/* <Badge variant="outline" className={getSimilarityColor(story.similarity_score)}>
                 {Math.round(story.similarity_score * 100)}% similarity
-              </Badge>
+              </Badge> */}
               <Badge variant="secondary" className="text-xs">
                 {getContentTypeIcon(story.source)} {story.source}
               </Badge>

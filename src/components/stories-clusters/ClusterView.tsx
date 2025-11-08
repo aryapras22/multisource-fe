@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 
-import { Search, Users, Star, Crown, FileText, MessageSquare, Newspaper } from "lucide-react"
+import { Search, Users, Star, Crown, FileText, MessageSquare, Newspaper, Network, BarChart3 } from "lucide-react"
 import type { ClusteringData, ClusterStory } from "@/types/clustering"
 import { StoryDetailModal } from "./StoryDetailModal"
 
@@ -170,12 +170,13 @@ export function ClusterView({ data }: Props) {
 
   const totalStories = data.clusters.reduce((sum, cluster) => sum + cluster.size, 0)
   const clustersWithInsights = data.clusters.filter((c) => c.representative_story.insight).length
+  console.log("cluster  : ", data)
 
   return (
     <>
       <>
         {/* Header */}
-        <Card className="border border-gray-200 space-y-1">
+        <Card className="border border-gray-200 space-y-1 mb-4">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -233,6 +234,122 @@ export function ClusterView({ data }: Props) {
             </p>
           </CardContent>
         </Card>
+
+        {/* Use Case Diagram Section */}
+        {data.usecase_diagram && (
+          <Card className="border border-gray-200 mb-4">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl font-bold text-black flex items-center gap-2">
+                    <Network className="h-5 w-5 text-blue-600" />
+                    Use Case Diagram
+                  </CardTitle>
+                  <p className="text-gray-600 mt-1">
+                    System interactions and workflows visualization
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <BarChart3 className="h-3 w-3" />
+                    {data.usecase_diagram.stats.clusters_represented} clusters
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-6">
+              {/* Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <div className="text-2xl font-bold text-blue-700">{data.usecase_diagram.stats.actors}</div>
+                  <div className="text-sm text-blue-600">Actors</div>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <div className="text-2xl font-bold text-green-700">{data.usecase_diagram.stats.usecases}</div>
+                  <div className="text-sm text-green-600">Use Cases</div>
+                </div>
+                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                  <div className="text-2xl font-bold text-purple-700">{data.usecase_diagram.stats.edges}</div>
+                  <div className="text-sm text-purple-600">Connections</div>
+                </div>
+                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                  <div className="text-2xl font-bold text-orange-700">{data.usecase_diagram.stats.clusters_represented}</div>
+                  <div className="text-sm text-orange-600">Clusters</div>
+                </div>
+              </div>
+
+              {/* Diagrams */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-900">Diagrams</h3>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {data.usecase_diagram.diagrams_url.map((url, index) => (
+                    <div key={index} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+                      <div className="p-3 bg-gray-50 border-b border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-700">Diagram {index + 1}</span>
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:text-blue-800 underline"
+                          >
+                            Open in new tab
+                          </a>
+                        </div>
+                      </div>
+                      <div className="p-4 flex items-center justify-center bg-gray-50">
+                        <img
+                          src={url}
+                          alt={`Use case diagram ${index + 1}`}
+                          className="max-w-full h-auto"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              parent.innerHTML = '<div class="text-gray-500 text-sm">Failed to load diagram</div>';
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* PlantUML Code (collapsible) */}
+              {data.usecase_diagram.diagrams_puml.length > 0 && (
+                <details className="group">
+                  <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900 flex items-center gap-2">
+                    <span className="group-open:rotate-90 transition-transform">▶</span>
+                    View PlantUML Source Code
+                  </summary>
+                  <div className="mt-4 space-y-4">
+                    {data.usecase_diagram.diagrams_puml.map((puml, index) => (
+                      <div key={index} className="bg-gray-900 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm text-gray-400">Diagram {index + 1}</span>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(puml);
+                            }}
+                            className="text-xs text-blue-400 hover:text-blue-300"
+                          >
+                            Copy
+                          </button>
+                        </div>
+                        <pre className="text-sm text-gray-100 overflow-x-auto">
+                          <code>{puml}</code>
+                        </pre>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Clusters */}
         <div className="space-y-8">

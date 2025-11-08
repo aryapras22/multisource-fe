@@ -44,7 +44,7 @@ function CreateProjectPage() {
 
       const data = await request.json();
 
-      if (!data.session_id || !data.queries) {
+      if (!data.project_id || !data.queries) {
         throw new Error("Invalid response format from server");
       }
 
@@ -53,7 +53,7 @@ function CreateProjectPage() {
       sessionStorage.setItem('sessionId', data.session_id);
       sessionStorage.setItem('queries', JSON.stringify(data.queries));
 
-      navigate(`/project/${data.session_id}/configure`)
+      navigate(`/project/${data.project_id}/configure`)
 
     } catch (error) {
       console.error('Error fetching queries:', error);

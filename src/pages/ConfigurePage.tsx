@@ -10,7 +10,7 @@ import { ArrowLeft, Settings, Plus, Edit2, Trash2, Save } from 'lucide-react'
 interface ProjectConfig {
   _id: string
   name: string
-  description: string
+  case_study: string
   queries: string[]
   dataSources: {
     appStores: boolean
@@ -28,7 +28,7 @@ function ConfigurePage() {
   const [project, setProject] = useState<ProjectConfig>({
     "_id": "",
     "name": "",
-    "description": "",
+    "case_study": "",
     "queries": [""],
     "dataSources": {
       appStores: true,
@@ -207,7 +207,7 @@ function ConfigurePage() {
           <CardHeader>
             <CardTitle className="text-xl font-bold text-black">{project.name}</CardTitle>
             <CardDescription className="text-sm text-gray-700 leading-relaxed">
-              {project.description}
+              {project.case_study}
             </CardDescription>
           </CardHeader>
         </Card>

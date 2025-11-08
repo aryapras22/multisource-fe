@@ -20,7 +20,7 @@ export async function extractUserStory(body: {
   project_id: string,
   source_id: string;
   content: string;
-  min_similarity?: string;
+  min_similarity?: number;
   dedupe?: boolean
 }) {
   return apiPost(`/extract-user-story`, body)
@@ -78,7 +78,7 @@ export async function getClusteredUserStories(params: {
   project_id: string;
   distance?: number;
 }) {
-  let url = `/clustering/user_stories/${params.project_id}`;
+  let url = `/clustering/user_stories/${params.project_id}/with-usecases`;
   if (params.distance !== undefined) {
     url += `?distance=${params.distance}`;
   }
@@ -89,9 +89,10 @@ export async function getClusteredAIUserStories(params: {
   project_id: string;
   distance?: number;
 }) {
-  let url = `/clustering/ai_user_stories/${params.project_id}`;
+  let url = `/clustering/ai_user_stories/${params.project_id}/with-usecases`;
   if (params.distance !== undefined) {
     url += `?distance=${params.distance}`;
   }
   return apiGet<ClusteringData>(url);
 }
+

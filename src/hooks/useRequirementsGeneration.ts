@@ -108,7 +108,8 @@ export function useRequirementsGeneration({
             project_id: projectId!,
             source,
             source_id: item._id,
-            content: cleanedText
+            content: cleanedText,
+            min_similarity: 0.5
           })
           recordItemResult(stepIndex, true)
         }
@@ -163,14 +164,15 @@ export function useRequirementsGeneration({
         console.error(`Failed to generate insight for story ${id}:`, error)
         recordItemResult(3, false)
       }
-      setStepProgress(3, (i + 1) / len)
+      setStepProgress(3, (i + 1) / len * 0.8) // 80% for insights
     }
     const stories = await getProjectUserStories({ project_id: projectId })
     setUserStories(stories)
+    setStepProgress(3, 0.9) // 90% after stories
     const clusters = await getClusteredUserStories({ project_id: projectId })
     setClusters(clusters)
     await updateFetchDataState({ project_id: projectId, userStories: true })
-    setStepProgress(3, 1)
+    setStepProgress(3, 1) // 100% after clusters with diagrams
   }, [projectId])
 
   const stepUseCasesPlaceholder: StepFn = useCallback(async () => {

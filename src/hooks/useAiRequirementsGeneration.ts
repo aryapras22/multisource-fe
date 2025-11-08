@@ -107,12 +107,14 @@ export function useAiRequirementsGeneration({
 
   const transformClusterData = (rawData: any): ClusteringData => {
     return {
+      ...rawData,
       project_id: rawData.project_id,
       clusters: rawData.clusters.map((cluster: any) => ({
         ...cluster,
         representative_story: transformRawStory(cluster.representative_story),
         stories: cluster.stories.map(transformRawStory)
       }))
+
     }
   }
 
@@ -236,17 +238,19 @@ export function useAiRequirementsGeneration({
         const stories = await getProjectUserStoriesAI({ project_id: projectId }) as AiUserStory[]
         setAiUserStories(stories)
 
+        const rawClusters = await getClusteredAIUserStories({ project_id: projectId })
+        if (rawClusters) {
+          const transformed = transformClusterData(rawClusters)
+          setClusters(transformed)
+        }
+
         if (states.aiUseCase) {
           const cases = await getAiUseCases({ project_id: projectId })
           if (cases) {
             setAiUseCases(cases)
           }
         }
-        const rawClusters = await getClusteredAIUserStories({ project_id: projectId })
-        if (rawClusters) {
-          const transformed = transformClusterData(rawClusters)
-          setClusters(transformed)
-        }
+
         setIsComplete(true)
         setIsGenerating(false)
         setProgress(100)

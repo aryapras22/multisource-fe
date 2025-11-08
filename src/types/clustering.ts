@@ -1,3 +1,5 @@
+import type { UserStory } from "./requirements"
+
 export interface ClusterStory {
   _id: string
   who: string
@@ -20,16 +22,32 @@ export interface ClusterStory {
 }
 
 export interface Cluster {
-  cluster_id: number
-  representative_story: ClusterStory
-  stories: ClusterStory[]
-  size: number
-  sources: string[]
+  cluster_id: number;
+  representative_story: UserStory;
+  stories: UserStory[];
+  size: number;
+  sources: string[];
+  usecase_diagram?: {
+    plantuml_code: string;
+    png_url: string;
+    svg_url: string;
+    ascii_url: string;
+  };
 }
 
 export interface ClusteringData {
-  project_id: string
-  clusters: Cluster[]
+  project_id: string;
+  clusters: Cluster[];
+  usecase_diagram?: {
+    diagrams_puml: string[];
+    diagrams_url: string[];
+    stats: {
+      actors: number;
+      usecases: number;
+      edges: number;
+      clusters_represented: number;
+    };
+  };
 }
 
 export interface Position {
