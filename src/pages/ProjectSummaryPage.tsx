@@ -20,6 +20,7 @@ import { DiagramsGrid } from "@/components/requirements/UseCasesGrid"
 import { Badge } from "@/components/ui/badge"
 import { TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Tooltip } from "@radix-ui/react-tooltip"
+import { ProjectAnalyticsSection } from "@/components/ProjectAnalyticsSection"
 
 interface Project {
   _id: string
@@ -324,6 +325,18 @@ export function ProjectSummary() {
             </AccordionContent>
           </AccordionItem>
         }
+
+        {/* Analytics Section */}
+        {id && (
+          <AccordionItem value="analytics">
+            <AccordionTrigger className="text-xl font-semibold">
+              Analytics & Insights
+            </AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-4">
+              <ProjectAnalyticsSection projectId={id} autoRefresh={true} />
+            </AccordionContent>
+          </AccordionItem>
+        )}
 
       </Accordion>
     </div>

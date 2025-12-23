@@ -116,13 +116,23 @@ function HomePage() {
               Transform your project ideas into structured software requirements through AI-powered analysis.
             </p>
           </div>
-          <Button
-            onClick={handleCreateProject}
-            className="bg-black hover:bg-gray-800 text-white flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Create New Project
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => navigate("/analytics")}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <ArrowRight className="h-4 w-4" />
+              Analytics Dashboard
+            </Button>
+            <Button
+              onClick={handleCreateProject}
+              className="bg-black hover:bg-gray-800 text-white flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Create New Project
+            </Button>
+          </div>
         </div>
 
         {/* Search and Filter */}

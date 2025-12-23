@@ -6,6 +6,7 @@ import DashboardPage from "./pages/DashboardPage"
 import RequirementsPage from "./pages/RequirementsPage"
 import AIRequirementsPage from "./pages/AIRequirementsPage"
 import { ProjectSummary } from "./pages/ProjectSummaryPage"
+import AnalyticsPage from "./pages/AnalyticsPage"
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/create-project" element={<CreateProjectPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
 
         {/* Project routes with dynamic segments */}
         <Route path="/project/:id">
