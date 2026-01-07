@@ -143,7 +143,7 @@ export function useAppsCollection(projectId?: string): UseAppsCollection {
 
   const deleteReviewItem = useCallback(async (reviewId: string) => {
     if (!projectId) return
-    
+
     try {
       await deleteReview(reviewId)
       // Remove from local state
