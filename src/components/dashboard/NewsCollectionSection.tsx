@@ -63,7 +63,7 @@ export function NewsCollectionSection({ logic }: { logic: UseNewsCollection }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {news.items.map(article => (
-        <NewsArticleCard key={article._id} article={article} />
+        <NewsArticleCard key={article._id} article={article} onDelete={logic.deleteNews} />
       ))}
     </div>
   )

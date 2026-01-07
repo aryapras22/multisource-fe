@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { User, Star } from "lucide-react"
+import { User, Star, Trash2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import type { AppReview } from "@/types/collections"
 import { useMemo, useState } from "react"
@@ -9,9 +9,10 @@ import { cn } from "@/lib/utils"
 /**
  * Renders a grid of collected app reviews.
  */
-export function ReviewsList({ reviews }: { reviews: AppReview[] }) {
+export function ReviewsList({ reviews, onDeleteReview }: { reviews: AppReview[]; onDeleteReview?: (id: string) => Promise<void> }) {
   const [starFilter, setStarFilter] = useState<number[]>([]) // empty = all
   const [appFilter, setAppFilter] = useState<string[]>([]) // empty = all
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const starOptions = [1, 2, 3, 4, 5]
 
@@ -35,6 +36,24 @@ export function ReviewsList({ reviews }: { reviews: AppReview[] }) {
   const resetFilters = () => {
     setStarFilter([])
     setAppFilter([])
+  }
+
+  const handleDeleteReview = async (reviewId: string, reviewText: string) => {
+    if (!onDeleteReview) return
+
+    const reviewPreview = reviewText.length > 50 ? reviewText.substring(0, 50) + '...' : reviewText
+    if (!confirm(`Delete review "${reviewPreview}"?\n\nThis action cannot be undone.`)) {
+      return
+    }
+
+    setDeletingId(reviewId)
+    try {
+      await onDeleteReview(reviewId)
+    } catch (error) {
+      alert(`Failed to delete review: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   const filteredReviews = useMemo(() => {
@@ -141,6 +160,17 @@ export function ReviewsList({ reviews }: { reviews: AppReview[] }) {
                     <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                     <span className="text-xs">{r.rating}</span>
                   </div>
+                  {onDeleteReview && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteReview(r._id, r.review)}
+                      disabled={deletingId === r._id}
+                      className="h-6 w-6 p-0 hover:bg-red-50 hover:text-red-700 text-red-600 disabled:opacity-50"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
                 </div>
               </div>
               <p className="text-sm text-gray-700">{r.review}</p>

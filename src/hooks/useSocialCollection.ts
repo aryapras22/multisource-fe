@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react"
 import type { SocialPost } from "@/types/collections"
 import { checkAndUpdateProjectStatus, fetchDataState, fetchProjectQueries } from "@/services/projectService"
-import { fetchTwitter, getTweets } from "@/services/socialService"
+import { fetchTwitter, getTweets, deleteTweet } from "@/services/socialService"
 
 interface CollectionState<T> {
   items: T[]
@@ -15,6 +15,7 @@ export interface UseSocialCollection {
   socialCount: number
   setSocialCount: (n: number) => void
   scrapeSocial: () => Promise<void>
+  deleteSocial: (tweetId: string) => Promise<void>
 }
 
 /**
@@ -66,5 +67,23 @@ export function useSocialCollection(projectId?: string): UseSocialCollection {
     await checkAndUpdateProjectStatus(projectId)
   }, [projectId, socialCount])
 
-  return { social, socialCount, setSocialCount, scrapeSocial }
+  const deleteSocial = useCallback(async (tweetId: string) => {
+    if (!projectId) return
+
+    try {
+      await deleteTweet(tweetId)
+      // Remove from local state
+      setSocial(s => ({
+        ...s,
+        items: s.items.filter(post => post._id !== tweetId)
+      }))
+      await checkAndUpdateProjectStatus(projectId)
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error
+      }
+    }
+  }, [projectId])
+
+  return { social, socialCount, setSocialCount, scrapeSocial, deleteSocial }
 }

@@ -1,4 +1,4 @@
-import { apiGet } from "./apiClient";
+import { apiGet, apiDelete } from "./apiClient";
 import type { App, AppReview } from "@/types/collections";
 
 export async function searchApps(params: { project_id: string; limit: number }) {
@@ -23,4 +23,8 @@ export async function getApps(params: { project_id: string }) {
 
 export async function getReviews(params: { project_id: string }) {
   return apiGet<AppReview[]>(`/get-project-app-reviews?project_id=${params.project_id}`)
+}
+
+export async function deleteReview(reviewId: string) {
+  return apiDelete(`/delete-review/${reviewId}`)
 }

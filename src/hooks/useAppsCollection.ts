@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react"
 import type { App, AppReview } from "@/types/collections"
-import { searchApps, fetchAppReviews, getApps, getReviews } from "@/services/appsService"
+import { searchApps, fetchAppReviews, getApps, getReviews, deleteReview } from "@/services/appsService"
 import { checkAndUpdateProjectStatus, fetchDataState } from "@/services/projectService"
 
 /**
@@ -27,6 +27,7 @@ export interface UseAppsCollection {
   getReviewsForApp: (appId: string | number, store: string) => Promise<void>
   getReviewsForAll: () => Promise<void>
   reviewsLoadingId: string | number | null
+  deleteReviewItem: (reviewId: string) => Promise<void>
 }
 
 
@@ -140,6 +141,24 @@ export function useAppsCollection(projectId?: string): UseAppsCollection {
 
   }, [appsState.items, getReviewsForApp])
 
+  const deleteReviewItem = useCallback(async (reviewId: string) => {
+    if (!projectId) return
+    
+    try {
+      await deleteReview(reviewId)
+      // Remove from local state
+      setReviewsState(s => ({
+        ...s,
+        items: s.items.filter(review => review._id !== reviewId)
+      }))
+      await checkAndUpdateProjectStatus(projectId)
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error
+      }
+    }
+  }, [projectId])
+
   return {
     apps: appsState,
     reviews: reviewsState,
@@ -150,6 +169,7 @@ export function useAppsCollection(projectId?: string): UseAppsCollection {
     findApps,
     getReviewsForApp,
     getReviewsForAll,
-    reviewsLoadingId
+    reviewsLoadingId,
+    deleteReviewItem
   }
 }

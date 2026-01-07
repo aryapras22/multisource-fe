@@ -158,7 +158,7 @@ export function AppCollectionSection({ logic }: { logic: UseAppsCollection }) {
         </Card>
       )}
 
-      <ReviewsList reviews={reviews.items} />
+      <ReviewsList reviews={reviews.items} onDeleteReview={logic.deleteReviewItem} />
       {reviews.error && <p className="text-sm text-red-600">{reviews.error}</p>}
     </div>
   )
