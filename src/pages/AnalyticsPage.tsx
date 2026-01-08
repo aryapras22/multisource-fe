@@ -74,7 +74,8 @@ export default function AnalyticsPage() {
     const fetchProjects = async () => {
       try {
         const endpoint = import.meta.env.VITE_MULTISOURCE_SERVICE_API_ENDPOINT || '';
-        const response = await fetch(`${endpoint}/get-projects`);
+        const apiKey = import.meta.env.VITE_API_KEY || '';
+        const response = await fetch(`${endpoint}/get-projects?key=${encodeURIComponent(apiKey)}`);
         if (!response.ok) throw new Error('Failed to fetch projects');
 
         interface ProjectData {

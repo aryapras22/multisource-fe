@@ -1,5 +1,6 @@
 
 const BASE_URL = import.meta.env.VITE_MULTISOURCE_SERVICE_API_ENDPOINT || ""
+const API_KEY = import.meta.env.VITE_API_KEY || "";
 
 export interface ApiError extends Error {
   status?: number
@@ -7,10 +8,13 @@ export interface ApiError extends Error {
 }
 
 export async function apiGet<T>(path: string, signal?: AbortSignal) {
-
-  const res = await fetch(BASE_URL + path, {
+  const separator = path.includes('?') ? '&' : '?'
+  const url = `${BASE_URL}${path}${separator}key=${encodeURIComponent(API_KEY)}`
+  const res = await fetch(url, {
     method: "GET",
-    headers: { Accept: "application/json" },
+    headers: {
+      "Accept": "application/json"
+    },
     signal
   })
 
@@ -27,8 +31,10 @@ export async function apiGet<T>(path: string, signal?: AbortSignal) {
 }
 
 export async function apiPost<T>(path: string, body?: unknown, signal?: AbortSignal) {
+  const separator = path.includes('?') ? '&' : '?'
+  const url = `${BASE_URL}${path}${separator}key=${encodeURIComponent(API_KEY)}`
 
-  const res = await fetch(BASE_URL + path, {
+  const res = await fetch(url, {
     method: "POST",
     headers: {
       "Accept": "application/json",
@@ -51,10 +57,13 @@ export async function apiPost<T>(path: string, body?: unknown, signal?: AbortSig
 }
 
 export async function apiPatch<T>(endpoint: string, body?: unknown): Promise<T> {
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
+  const separator = endpoint.includes('?') ? '&' : '?'
+  const url = `${BASE_URL}${endpoint}${separator}key=${encodeURIComponent(API_KEY)}`
+
+  const response = await fetch(url, {
     method: "PATCH",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/json"
     },
     body: body ? JSON.stringify(body) : null,
   })

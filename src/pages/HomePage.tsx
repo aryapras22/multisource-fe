@@ -26,6 +26,7 @@ function HomePage() {
     const fetchProjects = async () => {
       try {
         const endpoint = import.meta.env.VITE_MULTISOURCE_SERVICE_API_ENDPOINT
+        const apiKey = import.meta.env.VITE_API_KEY || ""
         if (!endpoint) {
           console.error("API endpoint is not configured")
 
@@ -34,7 +35,7 @@ function HomePage() {
           return
         }
 
-        const res = await fetch(`${endpoint}/get-projects`)
+        const res = await fetch(`${endpoint}/get-projects?key=${encodeURIComponent(apiKey)}`)
 
         if (!res.ok) {
           throw new Error('Failed to fetch data from API')
