@@ -63,7 +63,7 @@ export function SocialCollectionSection({ logic }: { logic: UseSocialCollection 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {social.items.map(p => (
-        <SocialPostCard key={p._id} post={p} />
+        <SocialPostCard key={p._id} post={p} onDelete={logic.deleteSocial} />
       ))}
     </div>
   )

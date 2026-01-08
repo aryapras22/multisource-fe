@@ -69,3 +69,24 @@ export async function apiPatch<T>(endpoint: string, body?: unknown): Promise<T> 
   })
   return response.json() as Promise<T>
 }
+
+export async function apiDelete<T = void>(path: string, signal?: AbortSignal): Promise<T> {
+  const res = await fetch(BASE_URL + path, {
+    method: "DELETE",
+    headers: { Accept: "application/json" },
+    signal
+  })
+
+  if (!res.ok) {
+    const err: ApiError = new Error(`DELETE ${path} failed (${res.status})`)
+    err.status = res.status
+    try {
+      err.payload = await res.json()
+    } catch { /* empty */ }
+    throw err
+  }
+
+  // Handle 204 No Content or empty response
+  const text = await res.text()
+  return (text ? JSON.parse(text) : undefined) as T
+}

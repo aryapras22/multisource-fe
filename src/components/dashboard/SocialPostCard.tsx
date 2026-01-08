@@ -1,8 +1,9 @@
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { User, ExternalLink, MessageCircle, Repeat2, Heart, Hash } from "lucide-react"
+import { User, ExternalLink, MessageCircle, Repeat2, Heart, Hash, Trash2 } from "lucide-react"
 import type { SocialPost } from "@/types/collections"
+import { useState } from "react"
 
 /**
  * Utility number formatter shared for social metrics.
@@ -12,7 +13,25 @@ const formatNumber = (n: number) => (n >= 1000 ? (n / 1000).toFixed(1) + "K" : n
 /**
  * Renders a single social media post card.
  */
-export function SocialPostCard({ post }: { post: SocialPost }) {
+export function SocialPostCard({ post, onDelete }: { post: SocialPost; onDelete?: (id: string) => Promise<void> }) {
+  const [deleting, setDeleting] = useState(false)
+
+  const handleDelete = async () => {
+    if (!onDelete) return
+
+    const postPreview = post.text.length > 50 ? post.text.substring(0, 50) + '...' : post.text
+    if (!confirm(`Delete post "${postPreview}"?\n\nThis action cannot be undone.`)) {
+      return
+    }
+
+    setDeleting(true)
+    try {
+      await onDelete(post._id)
+    } catch (error) {
+      alert(`Failed to delete post: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      setDeleting(false)
+    }
+  }
   return (
     <Card key={post._id} className="border border-gray-200">
       <CardHeader className="pb-3">
@@ -79,17 +98,30 @@ export function SocialPostCard({ post }: { post: SocialPost }) {
               {formatNumber(post.like_count)}
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            asChild
-            className="h-7 text-xs border-gray-300 hover:bg-gray-50 bg-transparent"
-          >
-            <a href={post.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
-              <ExternalLink className="h-3 w-3" />
-              View
-            </a>
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="h-7 text-xs border-gray-300 hover:bg-gray-50 bg-transparent"
+            >
+              <a href={post.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
+                <ExternalLink className="h-3 w-3" />
+                View
+              </a>
+            </Button>
+            {onDelete && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="h-7 px-2 text-xs border-red-300 hover:bg-red-50 hover:text-red-700 text-red-600 disabled:opacity-50"
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react"
 import type { NewsArticle } from "@/types/collections"
-import { fetchNewsArticles, getNews } from "@/services/newsService"
+import { fetchNewsArticles, getNews, deleteNewsArticle } from "@/services/newsService"
 import { checkAndUpdateProjectStatus, fetchDataState, fetchProjectQueries } from "@/services/projectService"
 
 interface CollectionState<T> {
@@ -15,6 +15,7 @@ export interface UseNewsCollection {
   newsCount: number
   setNewsCount: (n: number) => void
   fetchNews: () => Promise<void>
+  deleteNews: (newsId: string) => Promise<void>
 }
 
 /**
@@ -52,7 +53,7 @@ export function useNewsCollection(projectId?: string): UseNewsCollection {
       if (queries.length === 0) return
       const articles = []
       for (const q of queries) {
-        const data = await fetchNewsArticles({ project_id: projectId, query: q, limit: newsCount })
+        const data = await fetchNewsArticles({ project_id: projectId, query: q, count: newsCount })
         articles.push(...data)
       }
       setNews({ items: articles, loading: false, loaded: true })
@@ -64,5 +65,23 @@ export function useNewsCollection(projectId?: string): UseNewsCollection {
     await checkAndUpdateProjectStatus(projectId)
   }, [projectId, newsCount])
 
-  return { news, newsCount, setNewsCount, fetchNews }
+  const deleteNews = useCallback(async (newsId: string) => {
+    if (!projectId) return
+
+    try {
+      await deleteNewsArticle(newsId)
+      // Remove from local state
+      setNews(s => ({
+        ...s,
+        items: s.items.filter(article => article._id !== newsId)
+      }))
+      await checkAndUpdateProjectStatus(projectId)
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error
+      }
+    }
+  }, [projectId])
+
+  return { news, newsCount, setNewsCount, fetchNews, deleteNews }
 }

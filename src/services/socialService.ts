@@ -1,4 +1,4 @@
-import { apiGet } from "./apiClient";
+import { apiGet, apiDelete } from "./apiClient";
 import type { SocialPost } from "@/types/collections";
 
 export async function fetchTwitter(params: {
@@ -10,4 +10,8 @@ export async function fetchTwitter(params: {
 
 export async function getTweets(params: { project_id: string }) {
   return apiGet<SocialPost[]>(`/get-project-tweets?project_id=${params.project_id}`)
+}
+
+export async function deleteTweet(tweetId: string) {
+  return apiDelete(`/delete-tweet/${tweetId}`)
 }
