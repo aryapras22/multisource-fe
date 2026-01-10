@@ -2,9 +2,11 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Plus, Search, FolderOpen, Calendar, ArrowRight } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Plus, Search, FolderOpen, Calendar, ArrowRight, AlertCircle } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router"
+import { apiGet } from "@/services/apiClient"
 
 interface Project {
   _id: string
@@ -18,6 +20,7 @@ function HomePage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -25,26 +28,12 @@ function HomePage() {
 
     const fetchProjects = async () => {
       try {
-        const endpoint = import.meta.env.VITE_MULTISOURCE_SERVICE_API_ENDPOINT
-        const apiKey = import.meta.env.VITE_API_KEY || ""
-        if (!endpoint) {
-          console.error("API endpoint is not configured")
-
-          setProjects([])
-          setLoading(false)
-          return
-        }
-
-        const res = await fetch(`${endpoint}/get-projects?key=${encodeURIComponent(apiKey)}`)
-
-        if (!res.ok) {
-          throw new Error('Failed to fetch data from API')
-        }
-
-        const data = await res.json()
+        setError(null)
+        const data = await apiGet<Project[]>('/get-projects')
         setProjects(data)
       } catch (error) {
         console.error("An error occurred while fetching projects:", error)
+        setError(error instanceof Error ? error.message : "Failed to load projects. Please try again.")
         setProjects([])
       } finally {
         setLoading(false)
@@ -131,10 +120,19 @@ function HomePage() {
               className="bg-black hover:bg-gray-800 text-white flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
-              Create New Project
+              New Project
             </Button>
           </div>
         </div>
+
+        {/* Error Alert */}
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
         {/* Search and Filter */}
         <div className="mb-8">

@@ -3,7 +3,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { RefreshCw, Filter } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { RefreshCw, Filter, AlertCircle } from 'lucide-react';
+import { apiGet } from '@/services/apiClient';
 import { analyticsService } from '@/services/analyticsService';
 import { getBlacklistedProjects, addToBlacklist, removeFromBlacklist } from '@/lib/projectFilter';
 import { DataCollectionChart } from '@/components/analytics/DataCollectionChart';
@@ -73,16 +75,11 @@ export default function AnalyticsPage() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const endpoint = import.meta.env.VITE_MULTISOURCE_SERVICE_API_ENDPOINT || '';
-        const apiKey = import.meta.env.VITE_API_KEY || '';
-        const response = await fetch(`${endpoint}/get-projects?key=${encodeURIComponent(apiKey)}`);
-        if (!response.ok) throw new Error('Failed to fetch projects');
-
         interface ProjectData {
           _id: string;
           name: string;
         }
-        const projects: ProjectData[] = await response.json();
+        const projects = await apiGet<ProjectData[]>('/get-projects');
         setAllProjects(projects.map((p: ProjectData) => ({ id: p._id, name: p.name })));
       } catch (error) {
         console.error('Failed to fetch projects:', error);

@@ -5,7 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Settings, Plus, Edit2, Trash2, Save } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { ArrowLeft, Settings, Plus, Edit2, Trash2, Save, AlertCircle } from 'lucide-react'
+import { apiGet, apiPatch } from "@/services/apiClient"
 
 interface ProjectConfig {
   _id: string
@@ -18,8 +20,6 @@ interface ProjectConfig {
     socialMedia: boolean
   }
 }
-
-const ENDPOINT = import.meta.env.VITE_MULTISOURCE_SERVICE_API_ENDPOINT
 
 ///## Future Implementation 
 // data sources selection 
@@ -48,30 +48,26 @@ function ConfigurePage() {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
   const { id } = useParams()
+  const [error, setError] = useState('')
 
   useEffect(() => {
     // In a real app, fetch project data based on id
     const fetchProject = async () => {
+      if (!id) {
+        setError("Project ID is missing")
+        return
+      }
+
       try {
-        const endpoint = ENDPOINT
-        if (!endpoint) {
-          console.error("API endpoint is not configured")
-          setIsLoading(false)
-          return
-        }
-
-        const res = await fetch(`${endpoint}/get-project-data?id=${id}`)
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch data from API")
-        }
-
-        const data = await res.json()
+        setIsLoading(true)
+        setError(null)
+        const data = await apiGet<ProjectConfig>(`/get-project-data?id=${id}`)
         setProject({ ...data })
-        setQueries(data.queries)
+        setQueries(data.queries || [])
         setDataSources(data.dataSources)
       } catch (error) {
         console.error("An error occured while fetching project", error)
+        setError(error instanceof Error ? error.message : "Failed to load project data. Please check your connection and try again.")
       } finally {
         setIsLoading(false)
       }
@@ -134,39 +130,19 @@ function ConfigurePage() {
     setIsLoading(true)
 
     try {
-      const endpoint = ENDPOINT
-      if (!endpoint) {
-        console.error("API endpoint is not configured")
-        setIsLoading(false)
-        return
-      }
-
-      const res = await fetch(`${endpoint}/update-project-config`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          id,
-          queries,
-          dataSources
-        })
+      setError(null)
+      const payload = await apiPatch(`/update-project-config`, {
+        id,
+        queries,
+        dataSources
       })
-
-      if (!res.ok) {
-        const msg = await res.text().catch(() => "");
-        throw new Error(`HTTP ${res.status} ${res.statusText} - ${msg}`)
-      }
-
-      const ct = res.headers.get('content-type') ?? ""
-      const payload = res.status === 204 || !ct.includes("application/json") ? null : await res.json();
 
       console.log(payload)
 
       navigate(`/project/${id}/dashboard`)
     } catch (error) {
       console.error("update-project-config failed", error);
+      setError(error instanceof Error ? error.message : "Failed to save project configuration. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -202,14 +178,21 @@ function ConfigurePage() {
           </div>
         </div>
 
+        {/* Error Alert */}
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
         {/* Project Info */}
-        <Card className="border border-gray-200 shadow-sm mb-6">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold text-black">{project.name}</CardTitle>
-            <CardDescription className="text-sm text-gray-700 leading-relaxed">
-              {project.case_study}
-            </CardDescription>
-          </CardHeader>
+        <Card className="border border-gray-200 shadow-sm mb-6">          <CardHeader>            <CardTitle className="text-xl font-bold text-black">{project.name}</CardTitle>
+          <CardDescription className="text-sm text-gray-700 leading-relaxed">
+            {project.case_study}
+          </CardDescription>
+        </CardHeader>
         </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

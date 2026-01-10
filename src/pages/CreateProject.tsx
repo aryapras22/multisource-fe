@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, Save, Terminal } from 'lucide-react'
+import { apiPost } from "@/services/apiClient"
 
 function CreateProjectPage() {
   const [projectName, setProjectName] = useState("")
@@ -24,25 +25,31 @@ function CreateProjectPage() {
     setIsLoading(true)
 
     try {
-      const request = await fetch(
-        `${import.meta.env.VITE_MULTISOURCE_SERVICE_API_ENDPOINT || 'http://127.0.0.1:8001'}/create-new-project`,
+      // const request = await fetch(
+      //   `${import.meta.env.VITE_MULTISOURCE_SERVICE_API_ENDPOINT || 'http://127.0.0.1:8001'}/create-new-project`,
+      //   {
+      //     method: 'POST',
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //     },
+      //     body: JSON.stringify({
+      //       name: projectName.trim(),
+      //       case_study: projectDescription.trim()
+      //     })
+      //   }
+      // )
+
+      const data = await apiPost<{ project_id: string; queries: string[] }>('/create-new-project',
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: projectName.trim(),
-            case_study: projectDescription.trim()
-          })
-        }
-      )
+          name: projectName.trim(),
+          case_study: projectDescription.trim()
+        })
 
-      if (!request.ok) {
-        throw new Error(`HTTP error! status: ${request.status}`)
-      }
+      // if (!request.ok) {
+      //   throw new Error(`HTTP error! status: ${request.status}`)
+      // }
 
-      const data = await request.json();
+      // const data = await request.json();
 
       if (!data.project_id || !data.queries) {
         throw new Error("Invalid response format from server");

@@ -1,4 +1,3 @@
-
 const BASE_URL = import.meta.env.VITE_MULTISOURCE_SERVICE_API_ENDPOINT || ""
 const API_KEY = import.meta.env.VITE_API_KEY || "";
 
