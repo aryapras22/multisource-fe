@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { User, Star, Trash2 } from "lucide-react"
+import { User, Star, Trash2, Clipboard, Check } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import type { AppReview } from "@/types/collections"
 import { useMemo, useState } from "react"
@@ -13,6 +13,8 @@ export function ReviewsList({ reviews, onDeleteReview }: { reviews: AppReview[];
   const [starFilter, setStarFilter] = useState<number[]>([]) // empty = all
   const [appFilter, setAppFilter] = useState<string[]>([]) // empty = all
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [copyingId, setCopyingId] = useState<string | null>(null)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
 
   const starOptions = [1, 2, 3, 4, 5]
 
@@ -53,6 +55,19 @@ export function ReviewsList({ reviews, onDeleteReview }: { reviews: AppReview[];
       alert(`Failed to delete review: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setDeletingId(null)
+    }
+  }
+
+  const handleCopyReview = async (reviewId: string, reviewText: string) => {
+    try {
+      setCopyingId(reviewId)
+      await navigator.clipboard.writeText(reviewText)
+      setCopiedId(reviewId)
+      setTimeout(() => setCopiedId(null), 2000)
+    } catch (err) {
+      alert(`Failed to copy review text: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setCopyingId(null)
     }
   }
 
@@ -171,6 +186,16 @@ export function ReviewsList({ reviews, onDeleteReview }: { reviews: AppReview[];
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleCopyReview(r._id, r.review)}
+                    disabled={copyingId === r._id}
+                    className="h-6 w-6 p-0 hover:bg-gray-50 text-gray-600 disabled:opacity-50"
+                    aria-label="Copy review text"
+                  >
+                    {copiedId === r._id ? <Check className="h-3 w-3 text-green-600" /> : <Clipboard className="h-3 w-3" />}
+                  </Button>
                 </div>
               </div>
               <p className="text-sm text-gray-700">{r.review}</p>

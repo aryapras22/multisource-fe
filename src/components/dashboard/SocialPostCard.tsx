@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { User, ExternalLink, MessageCircle, Repeat2, Heart, Hash, Trash2 } from "lucide-react"
+import { User, ExternalLink, MessageCircle, Repeat2, Heart, Hash, Trash2, Clipboard, Check } from "lucide-react"
 import type { SocialPost } from "@/types/collections"
 import { useState } from "react"
 
@@ -15,6 +15,7 @@ const formatNumber = (n: number) => (n >= 1000 ? (n / 1000).toFixed(1) + "K" : n
  */
 export function SocialPostCard({ post, onDelete }: { post: SocialPost; onDelete?: (id: string) => Promise<void> }) {
   const [deleting, setDeleting] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const handleDelete = async () => {
     if (!onDelete) return
@@ -30,6 +31,15 @@ export function SocialPostCard({ post, onDelete }: { post: SocialPost; onDelete?
     } catch (error) {
       alert(`Failed to delete post: ${error instanceof Error ? error.message : 'Unknown error'}`)
       setDeleting(false)
+    }
+  }
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(post.text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      alert(`Failed to copy post text: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
   }
   return (
@@ -109,6 +119,15 @@ export function SocialPostCard({ post, onDelete }: { post: SocialPost; onDelete?
                 <ExternalLink className="h-3 w-3" />
                 View
               </a>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopy}
+              className="h-7 px-2 text-xs border-gray-300 hover:bg-gray-50 bg-transparent"
+              aria-label="Copy post text"
+            >
+              {copied ? <Check className="h-3 w-3 text-green-600" /> : <Clipboard className="h-3 w-3" />}
             </Button>
             {onDelete && (
               <Button

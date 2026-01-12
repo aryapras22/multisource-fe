@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ExternalLink, Trash2 } from "lucide-react"
+import { ExternalLink, Trash2, Clipboard, Check } from "lucide-react"
 import type { NewsArticle } from "@/types/collections"
 import { useState } from "react"
 
@@ -9,6 +9,7 @@ import { useState } from "react"
  */
 export function NewsArticleCard({ article, onDelete }: { article: NewsArticle; onDelete?: (id: string) => Promise<void> }) {
   const [deleting, setDeleting] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const handleDelete = async () => {
     if (!onDelete) return
@@ -23,6 +24,17 @@ export function NewsArticleCard({ article, onDelete }: { article: NewsArticle; o
     } catch (error) {
       alert(`Failed to delete article: ${error instanceof Error ? error.message : 'Unknown error'}`)
       setDeleting(false)
+    }
+  }
+  const handleCopy = async () => {
+    if (!article) return
+    try {
+      const text = `${article.title}\n\n${article.content || article.description || ""}`
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      alert(`Failed to copy article text: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
   }
   return (
@@ -48,6 +60,16 @@ export function NewsArticleCard({ article, onDelete }: { article: NewsArticle; o
               <ExternalLink className="h-3 w-3 mr-2" />
               Read Full Article
             </a>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCopy}
+            className="h-8 px-3 text-xs border-gray-300 hover:bg-gray-50"
+            aria-label="Copy article text"
+          >
+            {copied ? <Check className="h-3 w-3 text-green-600 mr-1" /> : <Clipboard className="h-3 w-3 mr-1" />}
+            <span>Copy</span>
           </Button>
           {onDelete && (
             <Button
