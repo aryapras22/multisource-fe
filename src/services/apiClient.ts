@@ -70,7 +70,10 @@ export async function apiPatch<T>(endpoint: string, body?: unknown): Promise<T> 
 }
 
 export async function apiDelete<T = void>(path: string, signal?: AbortSignal): Promise<T> {
-  const res = await fetch(BASE_URL + path, {
+  const separator = path.includes('?') ? '&' : '?'
+  const url = `${BASE_URL}${path}${separator}key=${encodeURIComponent(API_KEY)}`
+
+  const res = await fetch(url, {
     method: "DELETE",
     headers: { Accept: "application/json" },
     signal
