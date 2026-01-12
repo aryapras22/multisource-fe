@@ -12,6 +12,9 @@ import { cn } from "@/lib/utils"
 export function ReviewsList({ reviews, onDeleteReview }: { reviews: AppReview[]; onDeleteReview?: (id: string) => Promise<void> }) {
   const [starFilter, setStarFilter] = useState<number[]>([]) // empty = all
   const [appFilter, setAppFilter] = useState<string[]>([]) // empty = all
+  const [sampledReviews, setSampledReviews] = useState<AppReview[] | null>(null)
+  const [sampleCopying, setSampleCopying] = useState(false)
+  const [sampleCopied, setSampleCopied] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [copyingId, setCopyingId] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
@@ -38,6 +41,96 @@ export function ReviewsList({ reviews, onDeleteReview }: { reviews: AppReview[];
   const resetFilters = () => {
     setStarFilter([])
     setAppFilter([])
+    setSampledReviews(null)
+  }
+
+  const pickRandom = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)]
+
+  const copySampleContent = async (source: AppReview[]) => {
+    if (!source || !source.length) return
+    // Build numbered plain-text list of reviews
+    const items = source.map((r, i) => `${i + 1}. ${r.review}`)
+    const content = items.join('\n\n')
+    try {
+      setSampleCopying(true)
+      await navigator.clipboard.writeText(content)
+      setSampleCopied(true)
+      setTimeout(() => setSampleCopied(false), 2000)
+    } catch (err) {
+      alert(`Failed to copy sample: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setSampleCopying(false)
+    }
+  }
+
+  const handleGenerateSample = async () => {
+    const input = prompt("Enter sample size (integer). Must be large enough to cover all apps and 1-5 stars.")
+    if (input === null) return
+    const n = parseInt(input, 10)
+    if (Number.isNaN(n) || n <= 0) {
+      alert("Invalid sample size")
+      return
+    }
+
+    const apps = Array.from(new Set(reviews.map(r => r.app_id).filter(Boolean))).sort()
+
+    // Check we have at least one review for each star 1-5 in the dataset
+    const starsAvailable = new Set(reviews.map(r => Math.round(r.rating)))
+    const missingStars = [1, 2, 3, 4, 5].filter(s => !starsAvailable.has(s))
+    if (missingStars.length) {
+      alert(`Cannot create stratified sample: no reviews with star(s): ${missingStars.join(", ")}`)
+      return
+    }
+
+    const minRequired = Math.max(apps.length, 5)
+    if (n < minRequired) {
+      alert(`Sample size too small. Need at least ${minRequired} to represent all apps and 1-5 stars.`)
+      return
+    }
+
+    const byId = new Map<string, AppReview>()
+
+    // Ensure at least one from every app
+    for (const appId of apps) {
+      const pool = reviews.filter(r => r.app_id === appId)
+      if (pool.length) {
+        const chosen = pickRandom(pool)
+        byId.set(chosen._id, chosen)
+      }
+    }
+
+    // Ensure at least one of each star
+    for (let s = 1; s <= 5; s++) {
+      const pool = reviews.filter(r => Math.round(r.rating) === s && !byId.has(r._id))
+      if (pool.length) {
+        const chosen = pickRandom(pool)
+        byId.set(chosen._id, chosen)
+      }
+    }
+
+    // Fill remainder randomly
+    const remaining = reviews.filter(r => !byId.has(r._id))
+    // shuffle remaining (Fisher-Yates)
+    for (let i = remaining.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      const tmp = remaining[i]
+      remaining[i] = remaining[j]
+      remaining[j] = tmp
+    }
+
+    for (const r of remaining) {
+      if (byId.size >= n) break
+      byId.set(r._id, r)
+    }
+
+    const sample = Array.from(byId.values()).slice(0, n)
+    setSampledReviews(sample)
+    // Auto-copy the sample content once generated
+    try {
+      await copySampleContent(sample)
+    } catch (_) {
+      // ignore - copySampleContent handles errors
+    }
   }
 
   const handleDeleteReview = async (reviewId: string, reviewText: string) => {
@@ -141,6 +234,17 @@ export function ReviewsList({ reviews, onDeleteReview }: { reviews: AppReview[];
             <Button variant="ghost" size="sm" onClick={resetFilters}>
               Reset
             </Button>
+            <Button variant="outline" size="sm" onClick={handleGenerateSample}>
+              Generate Random Sample
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => sampledReviews && copySampleContent(sampledReviews)}
+              disabled={!sampledReviews || sampleCopying}
+            >
+              {sampleCopied ? "Copied" : "Copy Sample"}
+            </Button>
             {(starFilter.length > 0 || appFilter.length > 0) && (
               <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
                 {starFilter.length > 0 && `${starFilter.length} star filter${starFilter.length > 1 ? "s" : ""}`}
@@ -151,7 +255,11 @@ export function ReviewsList({ reviews, onDeleteReview }: { reviews: AppReview[];
           </div>
 
           <p className="text-xs text-gray-500">
-            Showing {filteredReviews.length} of {reviews.length} reviews
+            {sampledReviews ? (
+              <>Showing {filteredReviews.length} of {sampledReviews.length} sampled reviews (total {reviews.length})</>
+            ) : (
+              <>Showing {filteredReviews.length} of {reviews.length} reviews</>
+            )}
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

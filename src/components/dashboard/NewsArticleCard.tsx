@@ -28,9 +28,38 @@ export function NewsArticleCard({ article, onDelete }: { article: NewsArticle; o
   }
   const handleCopy = async () => {
     if (!article) return
+
+    const normalizeUnicode = (s?: string) => (s || "").normalize ? (s || "").normalize("NFKC") : (s || "")
+    const stripHtml = (s?: string) => (s || "").replace(/<[^>]+>/g, " ")
+    const removeUrls = (s?: string) => (s || "").replace(/(?:https?:\/\/|www\.)[^\s<>"')]+/gi, " ")
+    const removeEmails = (s?: string) => (s || "").replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g, " ")
+    const removePhoneNumbers = (s?: string) => (s || "").replace(/(?:\+?\d[\d\s().-]{6,}\d)/g, " ")
+    // preserve dots and commas (do not remove '.' or ',')
+    const removePunctNumbersSymbols = (s?: string) => (s || "").replace(/[^A-Za-z\s.,]/g, " ")
+    const collapseWhitespace = (s?: string) => (s || "").replace(/\s+/g, " ").trim()
+
+    const clean = (text?: string) => {
+      let t = normalizeUnicode(text)
+      t = stripHtml(t)
+      t = removeUrls(t)
+      t = removeEmails(t)
+      t = removePhoneNumbers(t)
+      t = removePunctNumbersSymbols(t)
+      return collapseWhitespace(t)
+    }
+
     try {
-      const text = `${article.title}\n\n${article.content || article.description || ""}`
-      await navigator.clipboard.writeText(text)
+      const payload = {
+        _id: article._id,
+        title: clean(article.title),
+        author: clean(article.author),
+        query: clean(article.query),
+        link: article.link,
+        cleaned: clean(article.content || article.description || ""),
+        references: article.link ? [article.link] : [],
+        published: article.published,
+      }
+      await navigator.clipboard.writeText(JSON.stringify(payload, null, 2))
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {

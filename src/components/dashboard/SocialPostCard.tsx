@@ -35,7 +35,31 @@ export function SocialPostCard({ post, onDelete }: { post: SocialPost; onDelete?
   }
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(post.text)
+      const normalizeUnicode = (s?: string) => (s || "").normalize ? (s || "").normalize("NFKC") : (s || "")
+      const stripHtml = (s?: string) => (s || "").replace(/<[^>]+>/g, " ")
+      const removeUrls = (s?: string) => (s || "").replace(/(?:https?:\/\/|www\.)[^\s<>'"\)]+/gi, " ")
+      const removeHashtags = (s?: string) => (s || "").replace(/#[A-Za-z0-9_]+/g, " ")
+      const removeEmojis = (s?: string) => {
+        if (!s) return "";
+
+        // Remove pictographic emoji codepoints, emoji modifiers, variation selectors and ZWJ
+        // This handles sequences like 👩‍💻 (ZWJ) and emoji+VS16 (U+FE0F)
+        try {
+          return s
+            .replace(/[\p{Extended_Pictographic}\p{Emoji_Modifier}\uFE0F\u200D]+/gu, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+        } catch (e) {
+          // Fallback for environments without Unicode property escapes support
+          return s.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, " ").replace(/\s+/g, " ").trim()
+        }
+      };
+      const collapseWhitespace = (s?: string) => (s || "").replace(/\s+/g, " ").trim()
+
+      const clean = (text?: string) => collapseWhitespace(removeEmojis(removeHashtags(removeUrls(stripHtml(normalizeUnicode(text))))))
+
+      const text = `1. ${clean(post.text)}`
+      await navigator.clipboard.writeText(text)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
