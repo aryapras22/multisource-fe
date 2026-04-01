@@ -7,12 +7,12 @@ export interface ApiError extends Error {
 }
 
 export async function apiGet<T>(path: string, signal?: AbortSignal) {
-  const separator = path.includes('?') ? '&' : '?'
-  const url = `${BASE_URL}${path}${separator}key=${encodeURIComponent(API_KEY)}`
+  const url = `${BASE_URL}${path}`
   const res = await fetch(url, {
     method: "GET",
     headers: {
-      "Accept": "application/json"
+      "Accept": "application/json",
+      "x-api-key": API_KEY
     },
     signal
   })
@@ -30,14 +30,14 @@ export async function apiGet<T>(path: string, signal?: AbortSignal) {
 }
 
 export async function apiPost<T>(path: string, body?: unknown, signal?: AbortSignal) {
-  const separator = path.includes('?') ? '&' : '?'
-  const url = `${BASE_URL}${path}${separator}key=${encodeURIComponent(API_KEY)}`
+  const url = `${BASE_URL}${path}`
 
   const res = await fetch(url, {
     method: "POST",
     headers: {
       "Accept": "application/json",
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "x-api-key": API_KEY
     },
     body: JSON.stringify(body),
     signal
@@ -56,13 +56,13 @@ export async function apiPost<T>(path: string, body?: unknown, signal?: AbortSig
 }
 
 export async function apiPatch<T>(endpoint: string, body?: unknown): Promise<T> {
-  const separator = endpoint.includes('?') ? '&' : '?'
-  const url = `${BASE_URL}${endpoint}${separator}key=${encodeURIComponent(API_KEY)}`
+  const url = `${BASE_URL}${endpoint}`
 
   const response = await fetch(url, {
     method: "PATCH",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "x-api-key": API_KEY
     },
     body: body ? JSON.stringify(body) : null,
   })
@@ -70,12 +70,14 @@ export async function apiPatch<T>(endpoint: string, body?: unknown): Promise<T> 
 }
 
 export async function apiDelete<T = void>(path: string, signal?: AbortSignal): Promise<T> {
-  const separator = path.includes('?') ? '&' : '?'
-  const url = `${BASE_URL}${path}${separator}key=${encodeURIComponent(API_KEY)}`
+  const url = `${BASE_URL}${path}`
 
   const res = await fetch(url, {
     method: "DELETE",
-    headers: { Accept: "application/json" },
+    headers: {
+      "Accept": "application/json",
+      "x-api-key": API_KEY
+    },
     signal
   })
 
